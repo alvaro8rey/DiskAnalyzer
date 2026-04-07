@@ -151,8 +151,8 @@ struct FileRowView: View {
                     .padding(.horizontal, 4)
             )
             .contentShape(Rectangle())
-            .onTapGesture { selectItem() }
-            .onTapGesture(count: 2) {
+            .onTapGesture {
+                selectItem()
                 if item.isDirectory { toggleExpand() }
             }
             .onHover { isHovered = $0 }

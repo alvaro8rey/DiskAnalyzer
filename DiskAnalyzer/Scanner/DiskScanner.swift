@@ -70,19 +70,20 @@ class DiskScanner: ObservableObject {
     }
     
     // MARK: - Recursive Scan
-    
+
     private func scanDirectory(item: FileItem, depth: Int) async {
         guard !Task.isCancelled else { return }
-        
+
         let fm = FileManager.default
         let url = item.url
-        
-        // Get attributes of the directory itself
+
         let attrs = try? fm.attributesOfItem(atPath: url.path)
         item.modificationDate = attrs?[.modificationDate] as? Date
         item.creationDate = attrs?[.creationDate] as? Date
         item.size = (attrs?[.size] as? Int64) ?? 0
-        
+        item.totalSize = item.size
+        item.children = []   // Aparece en el árbol de inmediato como carpeta vacía
+
         do {
             let contents = try fm.contentsOfDirectory(
                 at: url,
@@ -96,63 +97,50 @@ class DiskScanner: ObservableObject {
                 ],
                 options: [.skipsHiddenFiles]
             )
-            
-            var childItems: [FileItem] = []
-            
-            for childURL in contents {
+
+            for (idx, childURL) in contents.enumerated() {
                 guard !Task.isCancelled else { return }
-                
+
                 let resourceValues = try? childURL.resourceValues(forKeys: [
                     .isDirectoryKey, .isSymbolicLinkKey
                 ])
-                
                 let isSymLink = resourceValues?.isSymbolicLink ?? false
                 let isDir = (resourceValues?.isDirectory ?? false) && !isSymLink
-                
+
                 let child = FileItem(url: childURL, isDirectory: isDir)
                 child.parent = item
-                childItems.append(child)
-                
+
                 if isDir {
+                    // Añadir la carpeta al árbol antes de escanearla
+                    item.children?.append(child)
+                    item.itemCount += 1
+                    totalScanned += 1
+                    statusMessage = "Analizando... \(totalScanned) elementos encontrados"
+                    await Task.yield()                          // renderiza antes de bajar
                     await scanDirectory(item: child, depth: depth + 1)
+                    // Propagar tamaño y conteo al padre una vez escaneado el hijo
+                    item.totalSize += child.totalSize
+                    item.itemCount += child.itemCount
                 } else {
                     let fileAttrs = try? fm.attributesOfItem(atPath: childURL.path)
                     child.size = (fileAttrs?[.size] as? Int64) ?? 0
                     child.totalSize = child.size
                     child.modificationDate = fileAttrs?[.modificationDate] as? Date
                     child.creationDate = fileAttrs?[.creationDate] as? Date
-                }
-                
-                await MainActor.run {
-                    self.totalScanned += 1
-                    if self.totalScanned % 100 == 0 {
-                        self.statusMessage = "Analizando... \(self.totalScanned) elementos encontrados"
+                    item.children?.append(child)
+                    item.totalSize += child.totalSize
+                    item.itemCount += 1
+                    totalScanned += 1
+                    // Ceder el hilo cada 50 archivos para que la UI respire
+                    if idx % 50 == 0 {
+                        statusMessage = "Analizando... \(totalScanned) elementos encontrados"
+                        await Task.yield()
                     }
                 }
             }
-            
-            // Compute totals
-            var dirTotal: Int64 = item.size
-            var count = 0
-            for child in childItems {
-                dirTotal += child.totalSize
-                count += 1
-                if child.isDirectory {
-                    count += child.itemCount
-                }
-            }
-            
-            await MainActor.run {
-                item.children = childItems
-                item.totalSize = dirTotal
-                item.itemCount = count
-            }
-            
+
         } catch {
-            await MainActor.run {
-                item.children = []
-                item.totalSize = item.size
-            }
+            // item.children ya está inicializado a [], se queda vacío
         }
     }
     
