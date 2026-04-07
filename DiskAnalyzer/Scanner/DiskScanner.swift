@@ -6,7 +6,7 @@ import Combine
 
 @MainActor
 class DiskScanner: ObservableObject {
-    
+
     @Published var rootItem: FileItem?
     @Published var isScanning: Bool = false
     @Published var progress: Double = 0
@@ -15,15 +15,17 @@ class DiskScanner: ObservableObject {
     @Published var sortOption: SortOption = .sizeDesc
     @Published var searchText: String = ""
     @Published var errorMessage: String?
-    
+
     // Stats
     @Published var totalScanned: Int = 0
     @Published var scanDuration: TimeInterval = 0
-    
+    @Published var scanRate: Int = 0          // elementos/segundo
+
     private var scanTask: Task<Void, Never>?
     private var scanStart: Date?
-    private var progressTimer: Timer?
-    
+    private var rateTimer: Timer?
+    private var lastRateSnapshot: Int = 0
+
     func selectDirectory() {
         let panel = NSOpenPanel()
         panel.canChooseFiles = false
@@ -31,124 +33,155 @@ class DiskScanner: ObservableObject {
         panel.allowsMultipleSelection = false
         panel.message = "Selecciona un disco o directorio para analizar"
         panel.prompt = "Analizar"
-        
         if panel.runModal() == .OK, let url = panel.url {
             startScan(url: url)
         }
     }
-    
+
     func startScan(url: URL) {
         scanTask?.cancel()
+        rateTimer?.invalidate()
+
         errorMessage = nil
         totalScanned = 0
+        scanRate = 0
+        lastRateSnapshot = 0
         scanStart = Date()
-        
+
         let root = FileItem(url: url, isDirectory: true)
         rootItem = root
         selectedItem = root
         isScanning = true
-        statusMessage = "Analizando \(url.path)..."
+        statusMessage = "Iniciando análisis..."
         progress = 0
-        
-        scanTask = Task {
-            await scanDirectory(item: root, depth: 0)
-            
-            await MainActor.run {
-                self.isScanning = false
-                self.scanDuration = Date().timeIntervalSince(self.scanStart ?? Date())
-                self.statusMessage = "Análisis completado — \(root.formattedSize) en \(root.itemCount) elementos — \(String(format: "%.1f", self.scanDuration))s"
-                self.progress = 1.0
-                self.sortChildren(of: root)
+
+        // Actualiza la tasa cada segundo
+        rateTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self, self.isScanning else { return }
+                let n = self.totalScanned
+                self.scanRate = n - self.lastRateSnapshot
+                self.lastRateSnapshot = n
             }
         }
+
+        // Task hereda @MainActor; al llamar a scanDir (nonisolated) el runtime
+        // hace hop al thread pool cooperativo — el main thread queda libre.
+        scanTask = Task {
+            await scanDir(item: root)
+
+            // De vuelta en @MainActor
+            rateTimer?.invalidate()
+            rateTimer = nil
+            isScanning = false
+            scanRate = 0
+            scanDuration = Date().timeIntervalSince(scanStart ?? Date())
+            statusMessage = "✓ \(root.formattedSize) · \(root.itemCount) elementos · \(String(format: "%.1f", scanDuration))s"
+            progress = 1.0
+            sortChildren(of: root)
+        }
     }
-    
+
     func cancelScan() {
         scanTask?.cancel()
+        rateTimer?.invalidate()
+        rateTimer = nil
         isScanning = false
+        scanRate = 0
         statusMessage = "Análisis cancelado"
     }
-    
-    // MARK: - Recursive Scan
 
-    private func scanDirectory(item: FileItem, depth: Int) async {
+    // MARK: - Scanning (nonisolated → cooperative thread pool)
+
+    /// Escanea un directorio en background.
+    /// - Todos los atributos se leen en UNA sola llamada por entrada
+    ///   (los resource values quedan cacheados por contentsOfDirectory).
+    /// - Los subdirectorios se escanean en PARALELO con TaskGroup.
+    nonisolated private func scanDir(item: FileItem) async {
         guard !Task.isCancelled else { return }
 
-        let fm = FileManager.default
         let url = item.url
+        let allKeys: Set<URLResourceKey> = [
+            .fileSizeKey, .isDirectoryKey, .isSymbolicLinkKey,
+            .contentModificationDateKey, .creationDateKey
+        ]
 
-        let attrs = try? fm.attributesOfItem(atPath: url.path)
-        item.modificationDate = attrs?[.modificationDate] as? Date
-        item.creationDate = attrs?[.creationDate] as? Date
-        item.size = (attrs?[.size] as? Int64) ?? 0
-        item.totalSize = item.size
-        item.children = []   // Aparece en el árbol de inmediato como carpeta vacía
+        // Atributos del propio directorio
+        let ownRV   = try? url.resourceValues(forKeys: allKeys)
+        let ownSize = Int64(ownRV?.fileSize ?? 0)
 
-        do {
-            let contents = try fm.contentsOfDirectory(
-                at: url,
-                includingPropertiesForKeys: [
-                    .fileSizeKey,
-                    .isDirectoryKey,
-                    .contentModificationDateKey,
-                    .creationDateKey,
-                    .isRegularFileKey,
-                    .isSymbolicLinkKey
-                ],
-                options: [.skipsHiddenFiles]
-            )
+        await MainActor.run {
+            item.size             = ownSize
+            item.totalSize        = ownSize
+            item.modificationDate = ownRV?.contentModificationDate
+            item.creationDate     = ownRV?.creationDate
+            item.children         = []      // aparece en árbol de inmediato
+        }
 
-            for (idx, childURL) in contents.enumerated() {
-                guard !Task.isCancelled else { return }
+        // Listar directorio — resource values prefetcheados, sin syscall extra por entrada
+        guard let contents = try? FileManager.default.contentsOfDirectory(
+            at: url,
+            includingPropertiesForKeys: Array(allKeys),
+            options: .skipsHiddenFiles
+        ) else { return }
 
-                let resourceValues = try? childURL.resourceValues(forKeys: [
-                    .isDirectoryKey, .isSymbolicLinkKey
-                ])
-                let isSymLink = resourceValues?.isSymbolicLink ?? false
-                let isDir = (resourceValues?.isDirectory ?? false) && !isSymLink
+        var fileItems: [FileItem] = []
+        var dirItems:  [FileItem] = []
+        var fileTotal: Int64      = 0
 
-                let child = FileItem(url: childURL, isDirectory: isDir)
-                child.parent = item
+        for childURL in contents {
+            guard !Task.isCancelled else { return }
 
-                if isDir {
-                    // Añadir la carpeta al árbol antes de escanearla
-                    item.children?.append(child)
-                    item.itemCount += 1
-                    totalScanned += 1
-                    statusMessage = "Analizando... \(totalScanned) elementos encontrados"
-                    await Task.yield()                          // renderiza antes de bajar
-                    await scanDirectory(item: child, depth: depth + 1)
-                    // Propagar tamaño y conteo al padre una vez escaneado el hijo
-                    item.totalSize += child.totalSize
-                    item.itemCount += child.itemCount
-                } else {
-                    let fileAttrs = try? fm.attributesOfItem(atPath: childURL.path)
-                    child.size = (fileAttrs?[.size] as? Int64) ?? 0
-                    child.totalSize = child.size
-                    child.modificationDate = fileAttrs?[.modificationDate] as? Date
-                    child.creationDate = fileAttrs?[.creationDate] as? Date
-                    item.children?.append(child)
-                    item.totalSize += child.totalSize
-                    item.itemCount += 1
-                    totalScanned += 1
-                    // Ceder el hilo cada 50 archivos para que la UI respire
-                    if idx % 50 == 0 {
-                        statusMessage = "Analizando... \(totalScanned) elementos encontrados"
-                        await Task.yield()
+            // resourceValues() aquí lee del caché — cero syscalls adicionales
+            let rv       = try? childURL.resourceValues(forKeys: allKeys)
+            let isSymLink = rv?.isSymbolicLink ?? false
+            let isDir     = (rv?.isDirectory ?? false) && !isSymLink
+
+            let child = FileItem(url: childURL, isDirectory: isDir)
+            child.modificationDate = rv?.contentModificationDate
+            child.creationDate     = rv?.creationDate
+
+            if isDir {
+                dirItems.append(child)
+            } else {
+                let sz      = Int64(rv?.fileSize ?? 0)
+                child.size       = sz
+                child.totalSize  = sz
+                fileTotal       += sz
+                fileItems.append(child)
+            }
+        }
+
+        // Una sola actualización de UI por directorio (no por archivo)
+        let allChildren = dirItems + fileItems
+        let scanner = self
+        await MainActor.run {
+            for child in allChildren { child.parent = item }
+            item.children  = allChildren
+            item.totalSize += fileTotal
+            item.itemCount += allChildren.count
+            scanner.totalScanned += allChildren.count
+        }
+
+        // Escanear subdirectorios en PARALELO
+        await withTaskGroup(of: Void.self) { group in
+            for dirChild in dirItems {
+                guard !Task.isCancelled else { break }
+                group.addTask {
+                    await self.scanDir(item: dirChild)
+                    await MainActor.run {
+                        item.totalSize += dirChild.totalSize
+                        item.itemCount += dirChild.itemCount
                     }
                 }
             }
-
-        } catch {
-            // item.children ya está inicializado a [], se queda vacío
         }
     }
-    
+
     // MARK: - Sorting
-    
+
     func sortChildren(of item: FileItem) {
         guard let children = item.children else { return }
-        
         let sorted = children.sorted { a, b in
             switch sortOption {
             case .sizeDesc: return a.totalSize > b.totalSize
@@ -159,34 +192,28 @@ class DiskScanner: ObservableObject {
             case .dateAsc:  return (a.modificationDate ?? .distantPast) < (b.modificationDate ?? .distantPast)
             }
         }
-        
         item.children = sorted
-        
-        // Recurse into directories
         for child in sorted where child.isDirectory {
             sortChildren(of: child)
         }
     }
-    
+
     func resort() {
-        if let root = rootItem {
-            sortChildren(of: root)
-        }
+        if let root = rootItem { sortChildren(of: root) }
     }
-    
+
     // MARK: - File Operations
-    
+
     func revealInFinder(_ item: FileItem) {
         NSWorkspace.shared.selectFile(item.url.path, inFileViewerRootedAtPath: "")
     }
-    
+
     func openFile(_ item: FileItem) {
         NSWorkspace.shared.open(item.url)
     }
-    
+
     func getInfo(_ item: FileItem) {
         let script = "tell application \"Finder\"\nopen information window of (POSIX file \"\(item.url.path)\" as alias)\nactivate\nend tell"
-        let appleScript = NSAppleScript(source: script)
-        appleScript?.executeAndReturnError(nil)
+        NSAppleScript(source: script)?.executeAndReturnError(nil)
     }
 }

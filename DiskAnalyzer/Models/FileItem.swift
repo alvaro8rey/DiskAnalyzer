@@ -4,7 +4,7 @@ import Combine
 
 // MARK: - FileItem Model
 
-class FileItem: Identifiable, ObservableObject {
+class FileItem: Identifiable, ObservableObject, @unchecked Sendable {
     let id = UUID()
     let url: URL
     let name: String

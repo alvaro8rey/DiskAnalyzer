@@ -206,29 +206,55 @@ struct FileRowView: View {
 
 struct StatusBarView: View {
     @ObservedObject var scanner: DiskScanner
-    
+
     var body: some View {
-        HStack(spacing: 8) {
+        VStack(spacing: 0) {
+            // Barra de progreso animada durante el escaneo
             if scanner.isScanning {
                 ProgressView()
-                    .scaleEffect(0.6)
-                    .frame(width: 16, height: 16)
-            } else {
-                Image(systemName: scanner.rootItem == nil ? "externaldrive" : "checkmark.circle.fill")
-                    .foregroundStyle(scanner.rootItem == nil ? AnyShapeStyle(.secondary) : AnyShapeStyle(Color.green))
-                    .font(.system(size: 11))
+                    .progressViewStyle(.linear)
+                    .padding(.horizontal, 10)
+                    .padding(.top, 5)
+                    .padding(.bottom, 1)
             }
-            
-            Text(scanner.statusMessage)
-                .font(.system(size: 11))
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-            
-            Spacer()
+
+            HStack(spacing: 6) {
+                if scanner.isScanning {
+                    // Contador en vivo + velocidad
+                    Text("\(scanner.totalScanned.formatted()) elementos")
+                        .font(.system(size: 11, weight: .medium))
+                        .monospacedDigit()
+
+                    if scanner.scanRate > 0 {
+                        Text("·")
+                            .foregroundStyle(.secondary)
+                        Text("\(formatRate(scanner.scanRate))/s")
+                            .font(.system(size: 11, design: .monospaced))
+                            .foregroundStyle(.secondary)
+                    }
+                } else {
+                    Image(systemName: scanner.rootItem == nil ? "externaldrive" : "checkmark.circle.fill")
+                        .foregroundStyle(scanner.rootItem == nil ? AnyShapeStyle(.secondary) : AnyShapeStyle(Color.green))
+                        .font(.system(size: 11))
+
+                    Text(scanner.statusMessage)
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+
+                Spacer()
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
         .background(.regularMaterial)
+    }
+
+    private func formatRate(_ n: Int) -> String {
+        if n >= 1_000_000 { return String(format: "%.1fM", Double(n) / 1_000_000) }
+        if n >= 1_000     { return String(format: "%.1fK", Double(n) / 1_000) }
+        return "\(n)"
     }
 }
 
