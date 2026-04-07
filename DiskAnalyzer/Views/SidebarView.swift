@@ -195,8 +195,8 @@ struct FileRowView: View {
     private func sizeBarColor(pct: Double) -> Color {
         switch pct {
         case 0.5...:  return .red.opacity(0.75)
-        case 0.2..:   return .orange.opacity(0.75)
-        case 0.05..:  return .yellow.opacity(0.75)
+        case 0.2...:  return .orange.opacity(0.75)
+        case 0.05...: return .yellow.opacity(0.75)
         default:      return .green.opacity(0.6)
         }
     }

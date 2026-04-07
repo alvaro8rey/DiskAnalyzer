@@ -508,8 +508,8 @@ struct TableRow: View {
     var barColor: Color {
         switch pct {
         case 0.5...:  return .red
-        case 0.2..:   return .orange
-        case 0.05..:  return .yellow
+        case 0.2...:  return .orange
+        case 0.05...: return .yellow
         default:      return .green
         }
     }
