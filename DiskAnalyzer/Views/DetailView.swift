@@ -5,13 +5,13 @@ struct DetailView: View {
     
     var body: some View {
         VSplitView {
-            // Top: Treemap
+            // Top: Treemap — compacto, el usuario puede arrastrarlo si quiere más
             TreemapView(scanner: scanner)
-                .frame(minHeight: 250)
-            
-            // Bottom: Info panel
+                .frame(minHeight: 80, idealHeight: 160, maxHeight: 220)
+
+            // Bottom: Info panel — ocupa el espacio principal
             FileInfoPanel(scanner: scanner)
-                .frame(minHeight: 180, idealHeight: 220, maxHeight: 300)
+                .frame(minHeight: 220)
         }
     }
 }

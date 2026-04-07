@@ -9,7 +9,7 @@ struct ContentView: View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
             // MARK: Sidebar — Tree List
             SidebarView(scanner: scanner)
-                .navigationSplitViewColumnWidth(min: 280, ideal: 380, max: 500)
+                .navigationSplitViewColumnWidth(min: 300, ideal: 460, max: 700)
         } detail: {
             // MARK: Detail — Treemap + Info
             DetailView(scanner: scanner)
