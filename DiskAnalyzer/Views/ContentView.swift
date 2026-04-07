@@ -3,16 +3,16 @@ import Combine
 
 struct ContentView: View {
     @StateObject private var scanner = DiskScanner()
-    @State private var columnVisibility: NavigationSplitViewVisibility = .all
-    
+
     var body: some View {
-        NavigationSplitView(columnVisibility: $columnVisibility) {
+        HSplitView {
             // MARK: Sidebar — Tree List
             SidebarView(scanner: scanner)
-                .navigationSplitViewColumnWidth(min: 300, ideal: 460, max: 700)
-        } detail: {
+                .frame(minWidth: 300, idealWidth: 460, maxWidth: .infinity)
+
             // MARK: Detail — Treemap + Info
             DetailView(scanner: scanner)
+                .frame(minWidth: 380)
         }
         .toolbar {
             ToolbarItemGroup(placement: .navigation) {
@@ -20,7 +20,7 @@ struct ContentView: View {
                     Label("Abrir directorio", systemImage: "folder.badge.plus")
                 }
                 .help("Abrir directorio para analizar (⌘O)")
-                
+
                 if scanner.isScanning {
                     Button(action: { scanner.cancelScan() }) {
                         Label("Cancelar", systemImage: "stop.circle.fill")
@@ -29,7 +29,7 @@ struct ContentView: View {
                     .help("Cancelar análisis")
                 }
             }
-            
+
             ToolbarItemGroup(placement: .primaryAction) {
                 Picker("Ordenar", selection: Binding(
                     get: { scanner.sortOption },
@@ -45,9 +45,6 @@ struct ContentView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .openDirectoryPicker)) { _ in
             scanner.selectDirectory()
-        }
-        .onAppear {
-            // Optional: auto-scan home or show welcome
         }
     }
 }
