@@ -215,7 +215,7 @@ struct StatusBarView: View {
                     .frame(width: 16, height: 16)
             } else {
                 Image(systemName: scanner.rootItem == nil ? "externaldrive" : "checkmark.circle.fill")
-                    .foregroundStyle(scanner.rootItem == nil ? .secondary : .green)
+                    .foregroundStyle(scanner.rootItem == nil ? AnyShapeStyle(.secondary) : AnyShapeStyle(Color.green))
                     .font(.system(size: 11))
             }
             
