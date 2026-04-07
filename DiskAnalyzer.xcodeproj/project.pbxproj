@@ -1,0 +1,578 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXContainerItemProxy section */
+		3846D7A52F85BF5F009A9A5A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3846D78F2F85BF5B009A9A5A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3846D7962F85BF5B009A9A5A;
+			remoteInfo = DiskAnalyzer;
+		};
+		3846D7AF2F85BF5F009A9A5A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3846D78F2F85BF5B009A9A5A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3846D7962F85BF5B009A9A5A;
+			remoteInfo = DiskAnalyzer;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		3846D7972F85BF5B009A9A5A /* DiskAnalyzer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DiskAnalyzer.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3846D7A42F85BF5F009A9A5A /* DiskAnalyzerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DiskAnalyzerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		3846D7AE2F85BF5F009A9A5A /* DiskAnalyzerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DiskAnalyzerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		3846D7992F85BF5B009A9A5A /* DiskAnalyzer */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = DiskAnalyzer;
+			sourceTree = "<group>";
+		};
+		3846D7A72F85BF5F009A9A5A /* DiskAnalyzerTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = DiskAnalyzerTests;
+			sourceTree = "<group>";
+		};
+		3846D7B12F85BF5F009A9A5A /* DiskAnalyzerUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = DiskAnalyzerUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		3846D7942F85BF5B009A9A5A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3846D7A12F85BF5F009A9A5A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3846D7AB2F85BF5F009A9A5A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		3846D78E2F85BF5B009A9A5A = {
+			isa = PBXGroup;
+			children = (
+				3846D7A72F85BF5F009A9A5A /* DiskAnalyzerTests */,
+				3846D7B12F85BF5F009A9A5A /* DiskAnalyzerUITests */,
+				3846D7982F85BF5B009A9A5A /* Products */,
+				3846D7992F85BF5B009A9A5A /* DiskAnalyzer */,
+			);
+			sourceTree = "<group>";
+		};
+		3846D7982F85BF5B009A9A5A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				3846D7972F85BF5B009A9A5A /* DiskAnalyzer.app */,
+				3846D7A42F85BF5F009A9A5A /* DiskAnalyzerTests.xctest */,
+				3846D7AE2F85BF5F009A9A5A /* DiskAnalyzerUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		3846D7962F85BF5B009A9A5A /* DiskAnalyzer */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3846D7B82F85BF5F009A9A5A /* Build configuration list for PBXNativeTarget "DiskAnalyzer" */;
+			buildPhases = (
+				3846D7932F85BF5B009A9A5A /* Sources */,
+				3846D7942F85BF5B009A9A5A /* Frameworks */,
+				3846D7952F85BF5B009A9A5A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				3846D7992F85BF5B009A9A5A /* DiskAnalyzer */,
+			);
+			name = DiskAnalyzer;
+			packageProductDependencies = (
+			);
+			productName = DiskAnalyzer;
+			productReference = 3846D7972F85BF5B009A9A5A /* DiskAnalyzer.app */;
+			productType = "com.apple.product-type.application";
+		};
+		3846D7A32F85BF5F009A9A5A /* DiskAnalyzerTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3846D7BB2F85BF5F009A9A5A /* Build configuration list for PBXNativeTarget "DiskAnalyzerTests" */;
+			buildPhases = (
+				3846D7A02F85BF5F009A9A5A /* Sources */,
+				3846D7A12F85BF5F009A9A5A /* Frameworks */,
+				3846D7A22F85BF5F009A9A5A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				3846D7A62F85BF5F009A9A5A /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				3846D7A72F85BF5F009A9A5A /* DiskAnalyzerTests */,
+			);
+			name = DiskAnalyzerTests;
+			packageProductDependencies = (
+			);
+			productName = DiskAnalyzerTests;
+			productReference = 3846D7A42F85BF5F009A9A5A /* DiskAnalyzerTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		3846D7AD2F85BF5F009A9A5A /* DiskAnalyzerUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3846D7BE2F85BF5F009A9A5A /* Build configuration list for PBXNativeTarget "DiskAnalyzerUITests" */;
+			buildPhases = (
+				3846D7AA2F85BF5F009A9A5A /* Sources */,
+				3846D7AB2F85BF5F009A9A5A /* Frameworks */,
+				3846D7AC2F85BF5F009A9A5A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				3846D7B02F85BF5F009A9A5A /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				3846D7B12F85BF5F009A9A5A /* DiskAnalyzerUITests */,
+			);
+			name = DiskAnalyzerUITests;
+			packageProductDependencies = (
+			);
+			productName = DiskAnalyzerUITests;
+			productReference = 3846D7AE2F85BF5F009A9A5A /* DiskAnalyzerUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		3846D78F2F85BF5B009A9A5A /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2620;
+				LastUpgradeCheck = 2620;
+				TargetAttributes = {
+					3846D7962F85BF5B009A9A5A = {
+						CreatedOnToolsVersion = 26.2;
+					};
+					3846D7A32F85BF5F009A9A5A = {
+						CreatedOnToolsVersion = 26.2;
+						TestTargetID = 3846D7962F85BF5B009A9A5A;
+					};
+					3846D7AD2F85BF5F009A9A5A = {
+						CreatedOnToolsVersion = 26.2;
+						TestTargetID = 3846D7962F85BF5B009A9A5A;
+					};
+				};
+			};
+			buildConfigurationList = 3846D7922F85BF5B009A9A5A /* Build configuration list for PBXProject "DiskAnalyzer" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 3846D78E2F85BF5B009A9A5A;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 3846D7982F85BF5B009A9A5A /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				3846D7962F85BF5B009A9A5A /* DiskAnalyzer */,
+				3846D7A32F85BF5F009A9A5A /* DiskAnalyzerTests */,
+				3846D7AD2F85BF5F009A9A5A /* DiskAnalyzerUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		3846D7952F85BF5B009A9A5A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3846D7A22F85BF5F009A9A5A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3846D7AC2F85BF5F009A9A5A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		3846D7932F85BF5B009A9A5A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3846D7A02F85BF5F009A9A5A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3846D7AA2F85BF5F009A9A5A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		3846D7A62F85BF5F009A9A5A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3846D7962F85BF5B009A9A5A /* DiskAnalyzer */;
+			targetProxy = 3846D7A52F85BF5F009A9A5A /* PBXContainerItemProxy */;
+		};
+		3846D7B02F85BF5F009A9A5A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3846D7962F85BF5B009A9A5A /* DiskAnalyzer */;
+			targetProxy = 3846D7AF2F85BF5F009A9A5A /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		3846D7B62F85BF5F009A9A5A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 99B6P28FRP;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.2;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		3846D7B72F85BF5F009A9A5A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 99B6P28FRP;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.2;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		3846D7B92F85BF5F009A9A5A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 99B6P28FRP;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ARG.DiskAnalyzer;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		3846D7BA2F85BF5F009A9A5A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 99B6P28FRP;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ARG.DiskAnalyzer;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		3846D7BC2F85BF5F009A9A5A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 99B6P28FRP;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ARG.DiskAnalyzerTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DiskAnalyzer.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/DiskAnalyzer";
+			};
+			name = Debug;
+		};
+		3846D7BD2F85BF5F009A9A5A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 99B6P28FRP;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ARG.DiskAnalyzerTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DiskAnalyzer.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/DiskAnalyzer";
+			};
+			name = Release;
+		};
+		3846D7BF2F85BF5F009A9A5A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 99B6P28FRP;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ARG.DiskAnalyzerUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = DiskAnalyzer;
+			};
+			name = Debug;
+		};
+		3846D7C02F85BF5F009A9A5A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 99B6P28FRP;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ARG.DiskAnalyzerUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = DiskAnalyzer;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		3846D7922F85BF5B009A9A5A /* Build configuration list for PBXProject "DiskAnalyzer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3846D7B62F85BF5F009A9A5A /* Debug */,
+				3846D7B72F85BF5F009A9A5A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3846D7B82F85BF5F009A9A5A /* Build configuration list for PBXNativeTarget "DiskAnalyzer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3846D7B92F85BF5F009A9A5A /* Debug */,
+				3846D7BA2F85BF5F009A9A5A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3846D7BB2F85BF5F009A9A5A /* Build configuration list for PBXNativeTarget "DiskAnalyzerTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3846D7BC2F85BF5F009A9A5A /* Debug */,
+				3846D7BD2F85BF5F009A9A5A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3846D7BE2F85BF5F009A9A5A /* Build configuration list for PBXNativeTarget "DiskAnalyzerUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3846D7BF2F85BF5F009A9A5A /* Debug */,
+				3846D7C02F85BF5F009A9A5A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 3846D78F2F85BF5B009A9A5A /* Project object */;
+}

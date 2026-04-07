@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- ============================================================
+         OPCIÓN A: Sin Sandbox (más simple, para uso personal/interno)
+         ============================================================
+         Elimina la clave com.apple.security.app-sandbox (o ponla a false)
+         y podrás acceder a TODO el sistema de archivos sin restricciones.
+         ============================================================ -->
+    
+    <!-- Descomenta para activar Sandbox (necesario para Mac App Store) -->
+    <!-- <key>com.apple.security.app-sandbox</key>
+    <true/> -->
+    
+    <!-- Acceso de LECTURA a todos los archivos del usuario (con sandbox) -->
+    <!-- <key>com.apple.security.files.user-selected.read-only</key>
+    <true/> -->
+    
+    <!-- Acceso a Downloads, Desktop, Documents (con sandbox) -->
+    <!-- <key>com.apple.security.files.downloads.read-only</key>
+    <true/> -->
+    
+    <!-- ============================================================
+         OPCIÓN B: Con acceso completo al sistema de archivos
+         ============================================================
+         En macOS 10.15+ necesitas "Full Disk Access" en:
+         Preferencias del Sistema → Seguridad → Acceso Total al Disco
+         y añadir tu app o Xcode durante desarrollo.
+         ============================================================ -->
+    
+    <!-- Permitir AppleScript para "Obtener información" en Finder -->
+    <key>com.apple.security.automation.apple-events</key>
+    <true/>
+    
+    <!-- Heredability de privilegios para herramientas auxiliares -->
+    <key>com.apple.security.inherit</key>
+    <false/>
+</dict>
+</plist>
