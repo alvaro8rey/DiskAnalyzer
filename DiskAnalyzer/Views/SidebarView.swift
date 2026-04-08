@@ -116,24 +116,9 @@ struct FileRowView: View {
                     .lineLimit(1)
                     .truncationMode(.middle)
                     .padding(.leading, 4)
-                
+
                 Spacer(minLength: 8)
-                
-                // Size bar
-                if let parent = item.parent, parent.totalSize > 0 {
-                    let pct = item.percentage(of: parent)
-                    GeometryReader { geo in
-                        ZStack(alignment: .leading) {
-                            RoundedRectangle(cornerRadius: 2)
-                                .fill(Color.secondary.opacity(0.15))
-                            RoundedRectangle(cornerRadius: 2)
-                                .fill(sizeBarColor(pct: pct))
-                                .frame(width: geo.size.width * pct)
-                        }
-                    }
-                    .frame(width: 60, height: 6)
-                }
-                
+
                 // Size
                 Text(item.formattedSize)
                     .font(.system(size: 12, design: .monospaced))
@@ -143,12 +128,25 @@ struct FileRowView: View {
             }
             .frame(height: 28)
             .background(
-                RoundedRectangle(cornerRadius: 5)
-                    .fill(
-                        isSelected ? Color.accentColor.opacity(0.2) :
-                        isHovered ? Color.secondary.opacity(0.08) : .clear
-                    )
-                    .padding(.horizontal, 4)
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        // ── Fondo proporcional al porcentaje ──────────────
+                        if let parent = item.parent, parent.totalSize > 0 {
+                            let pct = CGFloat(item.percentage(of: parent))
+                            sizeBarColor(pct: Double(pct))
+                                .opacity(0.22)
+                                .frame(width: geo.size.width * pct)
+                                .animation(.easeOut(duration: 0.25), value: pct)
+                        }
+                        // ── Overlay selección / hover ─────────────────────
+                        RoundedRectangle(cornerRadius: 5)
+                            .fill(
+                                isSelected ? Color.accentColor.opacity(0.25) :
+                                isHovered  ? Color.secondary.opacity(0.08)   : Color.clear
+                            )
+                            .padding(.horizontal, 4)
+                    }
+                }
             )
             .contentShape(Rectangle())
             .onTapGesture {
