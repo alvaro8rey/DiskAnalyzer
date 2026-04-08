@@ -158,9 +158,12 @@ struct FileRowView: View {
             .onHover { isHovered = $0 }
             .contextMenu {
                 Button("Mostrar en Finder") { scanner.revealInFinder(item) }
-                Button("Abrir") { scanner.openFile(item) }
+                Button("Abrir")             { scanner.openFile(item) }
+                Button("Copiar ruta")        { scanner.copyPath(item) }
                 Divider()
                 Button("Obtener información") { scanner.getInfo(item) }
+                Divider()
+                Button("Mover a la papelera", role: .destructive) { scanner.moveToTrash(item) }
             }
             
             // Children (when expanded)
@@ -262,36 +265,88 @@ struct StatusBarView: View {
 
 struct WelcomeView: View {
     @ObservedObject var scanner: DiskScanner
-    
+
     var body: some View {
-        VStack(spacing: 24) {
-            Spacer()
-            
-            Image(systemName: "externaldrive.badge.magnifyingglass")
-                .font(.system(size: 56))
-                .foregroundStyle(.secondary)
-            
-            VStack(spacing: 8) {
-                Text("Disk Analyzer")
-                    .font(.system(size: 20, weight: .semibold))
-                Text("Analiza el uso del espacio en disco\ncomo WinDirStat / TreeSize")
-                    .font(.system(size: 13))
+        ScrollView {
+            VStack(spacing: 24) {
+                Spacer().frame(height: 16)
+
+                Image(systemName: "externaldrive.badge.magnifyingglass")
+                    .font(.system(size: 52))
                     .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
+
+                VStack(spacing: 6) {
+                    Text("Disk Analyzer")
+                        .font(.system(size: 20, weight: .semibold))
+                    Text("Analiza el uso del espacio en disco")
+                        .font(.system(size: 13))
+                        .foregroundStyle(.secondary)
+                }
+
+                Button(action: { scanner.selectDirectory() }) {
+                    Label("Seleccionar directorio...", systemImage: "folder.badge.plus")
+                        .font(.system(size: 13, weight: .medium))
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                }
+                .buttonStyle(.borderedProminent)
+                .keyboardShortcut("o", modifiers: .command)
+
+                // ── Recientes ────────────────────────────────────────────
+                if !scanner.recentDirectories.isEmpty {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("RECIENTES")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                            .padding(.leading, 4)
+
+                        VStack(spacing: 0) {
+                            ForEach(scanner.recentDirectories, id: \.path) { url in
+                                Button(action: { scanner.startScan(url: url) }) {
+                                    HStack(spacing: 10) {
+                                        Image(systemName: url.pathComponents.count <= 2
+                                              ? "externaldrive.fill" : "folder.fill")
+                                            .foregroundStyle(.accentColor)
+                                            .frame(width: 20)
+                                        VStack(alignment: .leading, spacing: 1) {
+                                            Text(url.lastPathComponent.isEmpty ? "/" : url.lastPathComponent)
+                                                .font(.system(size: 12, weight: .medium))
+                                                .lineLimit(1)
+                                            Text(url.path)
+                                                .font(.system(size: 10))
+                                                .foregroundStyle(.secondary)
+                                                .lineLimit(1)
+                                                .truncationMode(.head)
+                                        }
+                                        Spacer()
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: 10))
+                                            .foregroundStyle(.tertiary)
+                                    }
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 8)
+                                }
+                                .buttonStyle(.plain)
+
+                                if url != scanner.recentDirectories.last {
+                                    Divider().padding(.leading, 38)
+                                }
+                            }
+                        }
+                        .background(Color(NSColor.controlBackgroundColor))
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .strokeBorder(Color.secondary.opacity(0.2), lineWidth: 0.5)
+                        )
+                    }
+                    .frame(maxWidth: 340)
+                }
+
+                Spacer().frame(height: 16)
             }
-            
-            Button(action: { scanner.selectDirectory() }) {
-                Label("Seleccionar directorio...", systemImage: "folder.badge.plus")
-                    .font(.system(size: 13, weight: .medium))
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-            }
-            .buttonStyle(.borderedProminent)
-            .keyboardShortcut("o", modifiers: .command)
-            
-            Spacer()
+            .frame(maxWidth: .infinity)
+            .padding()
         }
-        .frame(maxWidth: .infinity)
-        .padding()
     }
 }

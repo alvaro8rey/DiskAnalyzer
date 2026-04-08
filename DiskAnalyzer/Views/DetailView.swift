@@ -2,16 +2,26 @@ import SwiftUI
 
 struct DetailView: View {
     @ObservedObject var scanner: DiskScanner
-    
-    var body: some View {
-        VSplitView {
-            // Top: Treemap — compacto, el usuario puede arrastrarlo si quiere más
-            TreemapView(scanner: scanner)
-                .frame(minHeight: 80, idealHeight: 160, maxHeight: 220)
 
-            // Bottom: Info panel — ocupa el espacio principal
-            FileInfoPanel(scanner: scanner)
-                .frame(minHeight: 220)
+    var body: some View {
+        if scanner.viewMode == .topFiles {
+            // Tabla de archivos grandes + panel de info
+            VSplitView {
+                TopFilesView(scanner: scanner)
+                FileInfoPanel(scanner: scanner)
+                    .frame(minHeight: 160, maxHeight: 240)
+            }
+        } else if scanner.viewMode == .fileTypes {
+            // Desglose por tipo (panel propio sin split extra)
+            FileTypesView(scanner: scanner)
+        } else {
+            // Treemap + panel de info
+            VSplitView {
+                TreemapView(scanner: scanner)
+                    .frame(minHeight: 80, idealHeight: 160, maxHeight: 220)
+                FileInfoPanel(scanner: scanner)
+                    .frame(minHeight: 220)
+            }
         }
     }
 }
@@ -278,9 +288,12 @@ struct TreemapCell: View {
         .onHover { isHovered = $0 }
         .contextMenu {
             Button("Mostrar en Finder") { scanner.revealInFinder(item) }
-            Button("Abrir") { scanner.openFile(item) }
+            Button("Abrir")             { scanner.openFile(item) }
+            Button("Copiar ruta")        { scanner.copyPath(item) }
             Divider()
             Button("Obtener información") { scanner.getInfo(item) }
+            Divider()
+            Button("Mover a la papelera", role: .destructive) { scanner.moveToTrash(item) }
         }
         .help("\(item.name)\n\(item.formattedSize)")
     }
@@ -501,7 +514,10 @@ struct TableRow: View {
         .onHover { isHovered = $0 }
         .contextMenu {
             Button("Mostrar en Finder") { scanner.revealInFinder(item) }
-            Button("Abrir") { scanner.openFile(item) }
+            Button("Abrir")             { scanner.openFile(item) }
+            Button("Copiar ruta")        { scanner.copyPath(item) }
+            Divider()
+            Button("Mover a la papelera", role: .destructive) { scanner.moveToTrash(item) }
         }
     }
     
