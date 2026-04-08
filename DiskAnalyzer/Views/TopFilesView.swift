@@ -25,37 +25,32 @@ struct TopFilesView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // ── Toolbar (adaptive) ───────────────────────────────────────
-            ViewThatFits(in: .horizontal) {
-                // ① Wide: título + picker segmentado
-                HStack(spacing: 12) {
-                    titleAndCount
-                    Spacer()
-                    filterPicker.pickerStyle(.segmented).frame(width: 295)
-                }
-                .padding(.horizontal, 14).padding(.vertical, 10)
-
-                // ② Medium: solo título corto + picker segmentado sin etiquetas largas
+            // ── Toolbar (adaptativa con GeometryReader) ──────────────────
+            GeometryReader { geo in
+                let w = geo.size.width
                 HStack(spacing: 8) {
-                    Text("\(displayedFiles.count.formatted()) archivos")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                    filterPicker.pickerStyle(.segmented).frame(width: 215)
+                    if w > 460 {
+                        titleAndCount
+                    } else {
+                        Text("\(displayedFiles.count.formatted()) archivos")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                    Spacer(minLength: 6)
+                    if w > 440 {
+                        filterPicker.pickerStyle(.segmented).frame(width: 280)
+                    } else if w > 330 {
+                        filterPicker.pickerStyle(.segmented).frame(width: 195)
+                    } else {
+                        filterPicker.pickerStyle(.menu).fixedSize()
+                    }
                 }
-                .padding(.horizontal, 14).padding(.vertical, 10)
-
-                // ③ Narrow: picker como menú desplegable compacto
-                HStack(spacing: 8) {
-                    Text("\(displayedFiles.count.formatted()) archivos")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                    Spacer(minLength: 4)
-                    filterPicker.pickerStyle(.menu).fixedSize()
-                }
-                .padding(.horizontal, 10).padding(.vertical, 8)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
+            .frame(height: 50)
             .background(Color(NSColor.controlBackgroundColor))
 
             Divider()
