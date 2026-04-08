@@ -33,6 +33,7 @@ class DiskScanner: ObservableObject {
     @Published var sortOption: SortOption = .sizeDesc
     @Published var searchText: String = ""
     @Published var errorMessage: String?
+    @Published var pendingAccessURL: URL?
 
     // Stats
     @Published var totalScanned: Int = 0
@@ -76,6 +77,7 @@ class DiskScanner: ObservableObject {
         rateTimer?.invalidate()
 
         errorMessage = nil
+        pendingAccessURL = nil
         totalScanned = 0
         scanRate = 0
         lastRateSnapshot = 0
@@ -107,10 +109,10 @@ class DiskScanner: ObservableObject {
             isScanning = false
             scanRate = 0
             scanDuration = Date().timeIntervalSince(scanStart ?? Date())
-            if errorMessage == nil {
+            if errorMessage == nil, pendingAccessURL == nil {
                 statusMessage = "✓ \(root.formattedSize) · \(root.itemCount.formatted()) elementos · \(String(format: "%.1f", scanDuration))s"
                 sortChildren(of: root)
-            } else {
+            } else if errorMessage != nil {
                 statusMessage = "Error al analizar el directorio"
             }
             progress = 1.0
@@ -166,8 +168,11 @@ class DiskScanner: ObservableObject {
         } catch {
             if item.parent == nil {
                 let scanner = self
-                let msg = "No se puede acceder a '\(url.lastPathComponent)': \(error.localizedDescription)"
-                await MainActor.run { scanner.errorMessage = msg }
+                await MainActor.run {
+                    scanner.isScanning = false
+                    scanner.statusMessage = "Sin acceso a '\(url.lastPathComponent)'"
+                    scanner.pendingAccessURL = url
+                }
             }
             return
         }

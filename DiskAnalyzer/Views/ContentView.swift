@@ -80,22 +80,20 @@ struct ContentView: View {
         .onReceive(NotificationCenter.default.publisher(for: .openDirectoryPicker)) { _ in
             scanner.selectDirectory()
         }
-        .alert("Sin permiso de acceso", isPresented: Binding(
+        // Acceso denegado (TCC): abre el panel automáticamente en la carpeta padre
+        .onChange(of: scanner.pendingAccessURL) { url in
+            guard let url else { return }
+            scanner.pendingAccessURL = nil
+            scanner.selectDirectory(initialURL: url)
+        }
+        // Otros errores (p.ej. mover a papelera)
+        .alert("Error", isPresented: Binding(
             get: { scanner.errorMessage != nil },
             set: { if !$0 { scanner.errorMessage = nil } }
         )) {
-            Button("Seleccionar manualmente") {
-                let failedURL = scanner.rootItem?.url
-                scanner.errorMessage = nil
-                scanner.selectDirectory(initialURL: failedURL)
-            }
-            Button("Acceso completo al disco") {
-                scanner.errorMessage = nil
-                NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")!)
-            }
-            Button("Cancelar", role: .cancel) { scanner.errorMessage = nil }
+            Button("OK", role: .cancel) { scanner.errorMessage = nil }
         } message: {
-            Text((scanner.errorMessage ?? "") + "\n\nPuedes seleccionarla manualmente con el panel de archivos, o conceder Acceso Completo al Disco en Preferencias del Sistema para que funcionen los recientes.")
+            Text(scanner.errorMessage ?? "")
         }
     }
 }
