@@ -306,7 +306,7 @@ struct WelcomeView: View {
                                     HStack(spacing: 10) {
                                         Image(systemName: url.pathComponents.count <= 2
                                               ? "externaldrive.fill" : "folder.fill")
-                                            .foregroundStyle(.accentColor)
+                                            .foregroundStyle(Color.accentColor)
                                             .frame(width: 20)
                                         VStack(alignment: .leading, spacing: 1) {
                                             Text(url.lastPathComponent.isEmpty ? "/" : url.lastPathComponent)
