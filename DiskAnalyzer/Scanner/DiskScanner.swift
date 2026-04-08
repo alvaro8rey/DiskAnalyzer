@@ -56,13 +56,16 @@ class DiskScanner: ObservableObject {
 
     // MARK: - Directory Selection
 
-    func selectDirectory() {
+    func selectDirectory(initialURL: URL? = nil) {
         let panel = NSOpenPanel()
         panel.canChooseFiles = false
         panel.canChooseDirectories = true
         panel.allowsMultipleSelection = false
         panel.message = "Selecciona un disco o directorio para analizar"
         panel.prompt = "Analizar"
+        if let initial = initialURL {
+            panel.directoryURL = initial.deletingLastPathComponent()
+        }
         if panel.runModal() == .OK, let url = panel.url {
             startScan(url: url)
         }

@@ -80,14 +80,22 @@ struct ContentView: View {
         .onReceive(NotificationCenter.default.publisher(for: .openDirectoryPicker)) { _ in
             scanner.selectDirectory()
         }
-        .alert("Error de acceso", isPresented: Binding(
+        .alert("Sin permiso de acceso", isPresented: Binding(
             get: { scanner.errorMessage != nil },
             set: { if !$0 { scanner.errorMessage = nil } }
         )) {
-            Button("Seleccionar con panel") { scanner.selectDirectory() }
+            Button("Seleccionar manualmente") {
+                let failedURL = scanner.rootItem?.url
+                scanner.errorMessage = nil
+                scanner.selectDirectory(initialURL: failedURL)
+            }
+            Button("Acceso completo al disco") {
+                scanner.errorMessage = nil
+                NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")!)
+            }
             Button("Cancelar", role: .cancel) { scanner.errorMessage = nil }
         } message: {
-            Text(scanner.errorMessage ?? "")
+            Text((scanner.errorMessage ?? "") + "\n\nPuedes seleccionarla manualmente con el panel de archivos, o conceder Acceso Completo al Disco en Preferencias del Sistema para que funcionen los recientes.")
         }
     }
 }
