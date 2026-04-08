@@ -104,9 +104,13 @@ class DiskScanner: ObservableObject {
             isScanning = false
             scanRate = 0
             scanDuration = Date().timeIntervalSince(scanStart ?? Date())
-            statusMessage = "✓ \(root.formattedSize) · \(root.itemCount.formatted()) elementos · \(String(format: "%.1f", scanDuration))s"
+            if errorMessage == nil {
+                statusMessage = "✓ \(root.formattedSize) · \(root.itemCount.formatted()) elementos · \(String(format: "%.1f", scanDuration))s"
+                sortChildren(of: root)
+            } else {
+                statusMessage = "Error al analizar el directorio"
+            }
             progress = 1.0
-            sortChildren(of: root)
         }
     }
 
@@ -149,11 +153,21 @@ class DiskScanner: ObservableObject {
         var options: FileManager.DirectoryEnumerationOptions = []
         if !showHidden { options.insert(.skipsHiddenFiles) }
 
-        guard let contents = try? FileManager.default.contentsOfDirectory(
-            at: url,
-            includingPropertiesForKeys: Array(allKeys),
-            options: options
-        ) else { return }
+        let contents: [URL]
+        do {
+            contents = try FileManager.default.contentsOfDirectory(
+                at: url,
+                includingPropertiesForKeys: Array(allKeys),
+                options: options
+            )
+        } catch {
+            if item.parent == nil {
+                let scanner = self
+                let msg = "No se puede acceder a '\(url.lastPathComponent)': \(error.localizedDescription)"
+                await MainActor.run { scanner.errorMessage = msg }
+            }
+            return
+        }
 
         var fileItems: [FileItem] = []
         var dirItems:  [FileItem] = []
@@ -290,7 +304,7 @@ class DiskScanner: ObservableObject {
     private func loadRecentDirectories() {
         let paths = UserDefaults.standard.stringArray(forKey: recentKey) ?? []
         recentDirectories = paths
-            .compactMap { URL(fileURLWithPath: $0) }
+            .compactMap { URL(fileURLWithPath: $0, isDirectory: true) }
             .filter { FileManager.default.fileExists(atPath: $0.path) }
     }
 

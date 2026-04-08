@@ -80,5 +80,14 @@ struct ContentView: View {
         .onReceive(NotificationCenter.default.publisher(for: .openDirectoryPicker)) { _ in
             scanner.selectDirectory()
         }
+        .alert("Error de acceso", isPresented: Binding(
+            get: { scanner.errorMessage != nil },
+            set: { if !$0 { scanner.errorMessage = nil } }
+        )) {
+            Button("Seleccionar con panel") { scanner.selectDirectory() }
+            Button("Cancelar", role: .cancel) { scanner.errorMessage = nil }
+        } message: {
+            Text(scanner.errorMessage ?? "")
+        }
     }
 }
