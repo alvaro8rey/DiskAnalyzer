@@ -25,28 +25,37 @@ struct TopFilesView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // ── Toolbar ──────────────────────────────────────────────────
-            HStack(spacing: 16) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Archivos más grandes")
-                        .font(.system(size: 13, weight: .semibold))
+            // ── Toolbar (adaptive) ───────────────────────────────────────
+            ViewThatFits(in: .horizontal) {
+                // ① Wide: título + picker segmentado
+                HStack(spacing: 12) {
+                    titleAndCount
+                    Spacer()
+                    filterPicker.pickerStyle(.segmented).frame(width: 295)
+                }
+                .padding(.horizontal, 14).padding(.vertical, 10)
+
+                // ② Medium: solo título corto + picker segmentado sin etiquetas largas
+                HStack(spacing: 8) {
                     Text("\(displayedFiles.count.formatted()) archivos")
-                        .font(.system(size: 11))
+                        .font(.system(size: 12, weight: .medium))
                         .foregroundStyle(.secondary)
+                    Spacer()
+                    filterPicker.pickerStyle(.segmented).frame(width: 215)
                 }
+                .padding(.horizontal, 14).padding(.vertical, 10)
 
-                Spacer()
-
-                Picker("Mostrar", selection: $minSize) {
-                    ForEach(filterOptions, id: \.size) { opt in
-                        Text(opt.label).tag(opt.size)
-                    }
+                // ③ Narrow: picker como menú desplegable compacto
+                HStack(spacing: 8) {
+                    Text("\(displayedFiles.count.formatted()) archivos")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                    Spacer(minLength: 4)
+                    filterPicker.pickerStyle(.menu).fixedSize()
                 }
-                .pickerStyle(.segmented)
-                .frame(width: 300)
+                .padding(.horizontal, 10).padding(.vertical, 8)
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 10)
             .background(Color(NSColor.controlBackgroundColor))
 
             Divider()
@@ -117,6 +126,27 @@ struct TopFilesView: View {
         .onAppear { refreshFiles() }
         .onChange(of: scanner.isScanning) { scanning in
             if !scanning { refreshFiles() }
+        }
+    }
+
+    // ── Sub-views ────────────────────────────────────────────────────────
+
+    private var titleAndCount: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text("Archivos más grandes")
+                .font(.system(size: 13, weight: .semibold))
+                .lineLimit(1)
+            Text("\(displayedFiles.count.formatted()) archivos")
+                .font(.system(size: 11))
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private var filterPicker: some View {
+        Picker("Mostrar", selection: $minSize) {
+            ForEach(filterOptions, id: \.size) { opt in
+                Text(opt.label).tag(opt.size)
+            }
         }
     }
 
