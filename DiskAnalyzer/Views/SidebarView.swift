@@ -300,7 +300,7 @@ struct WelcomeView: View {
 
                         VStack(spacing: 0) {
                             ForEach(scanner.recentDirectories, id: \.path) { url in
-                                Button(action: { scanner.startScan(url: url) }) {
+                                Button(action: { scanner.selectDirectory(initialURL: url) }) {
                                     HStack(spacing: 10) {
                                         Image(systemName: url.pathComponents.count <= 2
                                               ? "externaldrive.fill" : "folder.fill")

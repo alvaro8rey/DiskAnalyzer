@@ -62,10 +62,12 @@ class DiskScanner: ObservableObject {
         panel.canChooseFiles = false
         panel.canChooseDirectories = true
         panel.allowsMultipleSelection = false
-        panel.message = "Selecciona un disco o directorio para analizar"
         panel.prompt = "Analizar"
         if let initial = initialURL {
+            panel.message = "Selecciona '\(initial.lastPathComponent)' para confirmar el acceso"
             panel.directoryURL = initial.deletingLastPathComponent()
+        } else {
+            panel.message = "Selecciona un disco o directorio para analizar"
         }
         if panel.runModal() == .OK, let url = panel.url {
             startScan(url: url)
