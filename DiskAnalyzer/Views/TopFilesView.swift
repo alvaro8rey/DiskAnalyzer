@@ -10,12 +10,12 @@ struct TopFilesView: View {
     @State private var minSize: Int64 = 0
     @State private var allFiles: [FileItem] = []
 
-    private let filterOptions: [(label: String, size: Int64)] = [
-        ("Todos",    0),
-        (">1 MB",    1_048_576),
-        (">10 MB",   10_485_760),
-        (">100 MB",  104_857_600),
-        (">1 GB",    1_073_741_824)
+    private let filterOptions: [(label: String, short: String, size: Int64)] = [
+        ("Todos",   "Todo",  0),
+        (">1 MB",   "1 MB",  1_048_576),
+        (">10 MB",  "10 MB", 10_485_760),
+        (">100 MB", "100M",  104_857_600),
+        (">1 GB",   "1 GB",  1_073_741_824)
     ]
 
     var displayedFiles: [FileItem] {
@@ -29,7 +29,7 @@ struct TopFilesView: View {
             GeometryReader { geo in
                 let w = geo.size.width
                 HStack(spacing: 8) {
-                    if w > 460 {
+                    if w > 480 {
                         titleAndCount
                     } else {
                         Text("\(displayedFiles.count.formatted()) archivos")
@@ -38,12 +38,10 @@ struct TopFilesView: View {
                             .lineLimit(1)
                     }
                     Spacer(minLength: 6)
-                    if w > 440 {
-                        filterPicker.pickerStyle(.segmented).frame(width: 280)
-                    } else if w > 330 {
-                        filterPicker.pickerStyle(.segmented).frame(width: 195)
+                    if w > 310 {
+                        shortFilterPicker.pickerStyle(.segmented).fixedSize()
                     } else {
-                        filterPicker.pickerStyle(.menu).fixedSize()
+                        filterMenuPicker.pickerStyle(.menu).fixedSize()
                     }
                 }
                 .padding(.horizontal, 14)
@@ -137,7 +135,17 @@ struct TopFilesView: View {
         }
     }
 
-    private var filterPicker: some View {
+    /// Picker segmentado con etiquetas cortas (~220 px intrínseco)
+    private var shortFilterPicker: some View {
+        Picker("Mostrar", selection: $minSize) {
+            ForEach(filterOptions, id: \.size) { opt in
+                Text(opt.short).tag(opt.size)
+            }
+        }
+    }
+
+    /// Picker compacto tipo menú (siempre cabe)
+    private var filterMenuPicker: some View {
         Picker("Mostrar", selection: $minSize) {
             ForEach(filterOptions, id: \.size) { opt in
                 Text(opt.label).tag(opt.size)
