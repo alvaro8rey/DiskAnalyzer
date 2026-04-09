@@ -3,7 +3,8 @@ import SwiftUI
 struct SidebarView: View {
     @ObservedObject var scanner: DiskScanner
     @State private var expandedItems: Set<UUID> = []
-    
+    @FocusState private var treeIsFocused: Bool
+
     var body: some View {
         VStack(spacing: 0) {
             // Search bar
@@ -26,10 +27,10 @@ struct SidebarView: View {
                 .padding(.horizontal, 8)
                 .padding(.vertical, 6)
                 .background(.regularMaterial)
-                
+
                 Divider()
             }
-            
+
             // Tree list
             if let root = scanner.rootItem {
                 ScrollView {
@@ -43,14 +44,70 @@ struct SidebarView: View {
                         )
                     }
                 }
+                .focused($treeIsFocused)
+                .onTapGesture { treeIsFocused = true }
+                .onKeyPress(.upArrow)    { keyboardNavigate(-1); return .handled }
+                .onKeyPress(.downArrow)  { keyboardNavigate(+1); return .handled }
+                .onKeyPress(.rightArrow) { keyboardExpand();     return .handled }
+                .onKeyPress(.leftArrow)  { keyboardCollapse();   return .handled }
             } else {
                 WelcomeView(scanner: scanner)
             }
-            
+
             Divider()
-            
+
             // Status bar
             StatusBarView(scanner: scanner)
+        }
+    }
+
+    // MARK: - Keyboard navigation helpers
+
+    /// Construye una lista plana de items visibles (respeta expandedItems)
+    private func visibleItems() -> [FileItem] {
+        guard let root = scanner.rootItem else { return [] }
+        var result: [FileItem] = []
+        func traverse(_ item: FileItem) {
+            result.append(item)
+            if expandedItems.contains(item.id), let children = item.children {
+                children.forEach { traverse($0) }
+            }
+        }
+        traverse(root)
+        return result
+    }
+
+    private func keyboardNavigate(_ delta: Int) {
+        let flat = visibleItems()
+        guard !flat.isEmpty else { return }
+        let currentID = scanner.selectedItem?.id
+        if let idx = flat.firstIndex(where: { $0.id == currentID }) {
+            let next = max(0, min(flat.count - 1, idx + delta))
+            scanner.selectedItem = flat[next]
+        } else {
+            scanner.selectedItem = flat[delta > 0 ? 0 : flat.count - 1]
+        }
+    }
+
+    private func keyboardExpand() {
+        guard let item = scanner.selectedItem, item.isDirectory else { return }
+        if expandedItems.contains(item.id) {
+            // Ya expandido: bajar al primer hijo
+            if let first = item.children?.first {
+                scanner.selectedItem = first
+            }
+        } else {
+            expandedItems.insert(item.id)
+        }
+    }
+
+    private func keyboardCollapse() {
+        guard let item = scanner.selectedItem else { return }
+        if item.isDirectory && expandedItems.contains(item.id) {
+            expandedItems.remove(item.id)
+        } else if let parent = item.parent {
+            scanner.selectedItem = parent
+            expandedItems.remove(parent.id)
         }
     }
 }
