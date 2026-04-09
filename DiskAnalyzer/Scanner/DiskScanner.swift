@@ -45,7 +45,10 @@ class DiskScanner: ObservableObject {
     @Published var showHiddenFiles: Bool = false
     @Published var recentDirectories: [URL] = []
 
+    @Published var scanTimeout: TimeInterval = 300  // 5 min por defecto
+
     private var scanTask: Task<Void, Never>?
+    private var timeoutTask: Task<Void, Never>?
     private var scanStart: Date?
     private var rateTimer: Timer?
     private var lastRateSnapshot: Int = 0
@@ -76,6 +79,7 @@ class DiskScanner: ObservableObject {
 
     func startScan(url: URL) {
         scanTask?.cancel()
+        timeoutTask?.cancel()
         rateTimer?.invalidate()
 
         errorMessage = nil
@@ -104,8 +108,26 @@ class DiskScanner: ObservableObject {
         }
 
         let hidden = showHiddenFiles
+        let timeout = scanTimeout
+
+        // ── Tarea de timeout (cancela el scan si supera el límite) ───────
+        if timeout > 0 {
+            timeoutTask = Task { [weak self] in
+                try? await Task.sleep(nanoseconds: UInt64(timeout * 1_000_000_000))
+                guard !Task.isCancelled else { return }
+                await MainActor.run { [weak self] in
+                    guard let self, self.isScanning else { return }
+                    let mins = Int(timeout / 60)
+                    self.cancelScan()
+                    self.statusMessage = "⏱ Escaneo cancelado: límite de \(mins) min alcanzado. Comprueba la conexión de red."
+                }
+            }
+        }
+
         scanTask = Task {
             await scanDir(item: root, showHidden: hidden)
+            timeoutTask?.cancel()
+            timeoutTask = nil
             rateTimer?.invalidate()
             rateTimer = nil
             isScanning = false
@@ -128,6 +150,8 @@ class DiskScanner: ObservableObject {
 
     func cancelScan() {
         scanTask?.cancel()
+        timeoutTask?.cancel()
+        timeoutTask = nil
         rateTimer?.invalidate()
         rateTimer = nil
         isScanning = false
