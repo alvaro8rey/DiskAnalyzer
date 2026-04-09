@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct TopFilesView: View {
     @ObservedObject var scanner: DiskScanner
@@ -27,34 +28,8 @@ struct TopFilesView: View {
         VStack(spacing: 0) {
             // ── Toolbar (adaptativa con GeometryReader) ──────────────────
             GeometryReader { geo in
-                let w = geo.size.width
-                HStack(spacing: 8) {
-                    if w > 480 {
-                        titleAndCount
-                    } else {
-                        Text("\(displayedFiles.count.formatted()) archivos")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                    }
-                    Spacer(minLength: 6)
-                    if w > 310 {
-                        shortFilterPicker.pickerStyle(.segmented).fixedSize()
-                    } else {
-                        filterMenuPicker.pickerStyle(.menu).fixedSize()
-                    }
-                    Button(action: exportToCSV) {
-                        Image(systemName: "square.and.arrow.up")
-                            .font(.system(size: 13))
-                    }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(.secondary)
-                    .help("Exportar resultados a CSV")
-                    .disabled(allFiles.isEmpty)
-                }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 10)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                toolbarContent(width: geo.size.width)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             .frame(height: 50)
             .background(Color(NSColor.controlBackgroundColor))
@@ -148,6 +123,36 @@ struct TopFilesView: View {
     }
 
     // ── Sub-views ────────────────────────────────────────────────────────
+
+    @ViewBuilder
+    private func toolbarContent(width w: CGFloat) -> some View {
+        HStack(spacing: 8) {
+            if w > 480 {
+                titleAndCount
+            } else {
+                Text("\(displayedFiles.count.formatted()) archivos")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+            Spacer(minLength: 6)
+            if w > 310 {
+                shortFilterPicker.pickerStyle(.segmented).fixedSize()
+            } else {
+                filterMenuPicker.pickerStyle(.menu).fixedSize()
+            }
+            Button(action: exportToCSV) {
+                Image(systemName: "square.and.arrow.up")
+                    .font(.system(size: 13))
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(.secondary)
+            .help("Exportar resultados a CSV")
+            .disabled(allFiles.isEmpty)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+    }
 
     private var titleAndCount: some View {
         VStack(alignment: .leading, spacing: 2) {
