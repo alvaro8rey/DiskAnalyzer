@@ -110,8 +110,9 @@ struct FileRowView: View {
                     .font(.system(size: 13))
                     .frame(width: 20, height: 20)
                 
-                // Name
-                Text(item.name.isEmpty ? "/" : item.name)
+                // Name (con highlight de búsqueda si aplica)
+                highlightedName(item.name.isEmpty ? "/" : item.name,
+                                search: scanner.searchText)
                     .font(.system(size: 13))
                     .lineLimit(1)
                     .truncationMode(.middle)
@@ -181,6 +182,21 @@ struct FileRowView: View {
         }
     }
     
+    /// Renderiza `text` con la parte que coincide con `search` en negrita y
+    /// color de acento. Devuelve un Text compuesto para poder aplicar modificadores.
+    private func highlightedName(_ text: String, search: String) -> Text {
+        guard !search.isEmpty,
+              let range = text.range(of: search, options: .caseInsensitive) else {
+            return Text(text)
+        }
+        let before = String(text[text.startIndex..<range.lowerBound])
+        let match  = String(text[range])
+        let after  = String(text[range.upperBound...])
+        return Text(before)
+             + Text(match).bold().foregroundColor(.accentColor)
+             + Text(after)
+    }
+
     private func selectItem() {
         scanner.selectedItem = item
     }
