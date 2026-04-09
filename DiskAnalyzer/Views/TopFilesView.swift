@@ -43,6 +43,14 @@ struct TopFilesView: View {
                     } else {
                         filterMenuPicker.pickerStyle(.menu).fixedSize()
                     }
+                    Button(action: exportToCSV) {
+                        Image(systemName: "square.and.arrow.up")
+                            .font(.system(size: 13))
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.secondary)
+                    .help("Exportar resultados a CSV")
+                    .disabled(allFiles.isEmpty)
                 }
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
@@ -171,6 +179,19 @@ struct TopFilesView: View {
     }
 
     // ── Helpers ─────────────────────────────────────────────────────────
+
+    private func exportToCSV() {
+        let csv = scanner.exportTopFilesToCSV()
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.commaSeparatedText]
+        let df = DateFormatter()
+        df.dateFormat = "yyyy-MM-dd"
+        panel.nameFieldStringValue = "DiskAnalyzer_\(df.string(from: Date())).csv"
+        panel.title = "Exportar resultados"
+        if panel.runModal() == .OK, let url = panel.url {
+            try? csv.write(to: url, atomically: true, encoding: .utf8)
+        }
+    }
 
     private func refreshFiles() {
         allFiles = scanner.topFiles

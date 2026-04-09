@@ -378,6 +378,27 @@ class DiskScanner: ObservableObject {
         NSPasteboard.general.setString(item.url.path, forType: .string)
     }
 
+    // MARK: - CSV Export
+
+    func exportTopFilesToCSV() -> String {
+        func q(_ s: String) -> String { "\"\(s.replacingOccurrences(of: "\"", with: "\"\""))\"" }
+        var lines = [
+            [q("Nombre"), q("Ruta completa"), q("Tamaño (bytes)"), q("Tipo"), q("Fecha modificación")]
+                .joined(separator: ",")
+        ]
+        for item in topFiles {
+            let ext = item.url.pathExtension.isEmpty ? "-" : ".\(item.url.pathExtension)"
+            lines.append([
+                q(item.name),
+                q(item.url.path),
+                "\(item.totalSize)",
+                q(ext),
+                q(item.formattedDate)
+            ].joined(separator: ","))
+        }
+        return lines.joined(separator: "\n")
+    }
+
     private func propagateSizeRemoval(size: Int64, count: Int, from startItem: FileItem) {
         var current: FileItem? = startItem
         while let node = current {
