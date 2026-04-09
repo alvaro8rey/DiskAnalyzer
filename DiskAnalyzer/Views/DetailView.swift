@@ -293,7 +293,7 @@ struct TreemapCell: View {
             Divider()
             Button("Obtener información") { scanner.getInfo(item) }
             Divider()
-            Button("Mover a la papelera", role: .destructive) { scanner.moveToTrash(item) }
+            Button("Mover a la papelera", role: .destructive) { scanner.confirmAndMoveToTrash(item) }
         }
         .help("\(item.name)\n\(item.formattedSize)")
     }
@@ -517,7 +517,7 @@ struct TableRow: View {
             Button("Abrir")             { scanner.openFile(item) }
             Button("Copiar ruta")        { scanner.copyPath(item) }
             Divider()
-            Button("Mover a la papelera", role: .destructive) { scanner.moveToTrash(item) }
+            Button("Mover a la papelera", role: .destructive) { scanner.confirmAndMoveToTrash(item) }
         }
     }
     

@@ -288,6 +288,53 @@ class DiskScanner: ObservableObject {
         }
     }
 
+    func confirmAndMoveToTrash(_ item: FileItem) {
+        let alert = NSAlert()
+        alert.messageText = "¿Mover «\(item.name.isEmpty ? "/" : item.name)» a la papelera?"
+        alert.informativeText = "\(item.isDirectory ? "El directorio" : "El archivo") ocupa \(item.formattedSize). Podrás recuperarlo desde la Papelera."
+        alert.addButton(withTitle: "Mover a la papelera")
+        alert.addButton(withTitle: "Cancelar")
+        alert.alertStyle = .warning
+        if alert.runModal() == .alertFirstButtonReturn {
+            moveToTrash(item)
+        }
+    }
+
+    func confirmAndMoveMultipleToTrash(_ items: [FileItem], completion: @escaping ([FileItem]) -> Void) {
+        guard !items.isEmpty else { return }
+        let totalSize = items.reduce(Int64(0)) { $0 + $1.totalSize }
+        let sizeStr = ByteCountFormatter.string(fromByteCount: totalSize, countStyle: .file)
+        let alert = NSAlert()
+        alert.messageText = "¿Mover \(items.count) elementos a la papelera?"
+        alert.informativeText = "Ocupan \(sizeStr) en total. Podrás recuperarlos desde la Papelera."
+        alert.addButton(withTitle: "Mover a la papelera")
+        alert.addButton(withTitle: "Cancelar")
+        alert.alertStyle = .warning
+        if alert.runModal() == .alertFirstButtonReturn {
+            var moved: [FileItem] = []
+            for item in items {
+                do {
+                    try FileManager.default.trashItem(at: item.url, resultingItemURL: nil)
+                    if let parent = item.parent {
+                        parent.children?.removeAll { $0.id == item.id }
+                        propagateSizeRemoval(
+                            size:  item.totalSize,
+                            count: item.isDirectory ? item.itemCount + 1 : 1,
+                            from:  parent
+                        )
+                    }
+                    moved.append(item)
+                } catch {
+                    errorMessage = "No se pudo mover «\(item.name)»: \(error.localizedDescription)"
+                }
+            }
+            if selectedItem.map({ moved.contains(where: { $0.id == $0.id }) }) == true {
+                selectedItem = rootItem
+            }
+            completion(moved)
+        }
+    }
+
     func copyPath(_ item: FileItem) {
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(item.url.path, forType: .string)

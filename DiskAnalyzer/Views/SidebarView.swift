@@ -161,7 +161,7 @@ struct FileRowView: View {
                 Divider()
                 Button("Obtener información") { scanner.getInfo(item) }
                 Divider()
-                Button("Mover a la papelera", role: .destructive) { scanner.moveToTrash(item) }
+                Button("Mover a la papelera", role: .destructive) { scanner.confirmAndMoveToTrash(item) }
             }
             
             // Children (when expanded)
