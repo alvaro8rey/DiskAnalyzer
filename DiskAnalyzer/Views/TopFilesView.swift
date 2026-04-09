@@ -26,7 +26,6 @@ struct TopFilesView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // ── Toolbar (adaptativa con GeometryReader) ──────────────────
             GeometryReader { geo in
                 toolbarContent(width: geo.size.width)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -36,89 +35,91 @@ struct TopFilesView: View {
 
             Divider()
 
-            // ── Content ──────────────────────────────────────────────────
-            if allFiles.isEmpty {
-                emptyState
-            } else {
-                Table(displayedFiles, selection: $selectedIDs, sortOrder: $sortOrder) {
-                    TableColumn("Nombre", value: \.name) { item in
-                        HStack(spacing: 6) {
-                            Image(systemName: item.icon)
-                                .foregroundStyle(item.iconColor)
-                                .font(.system(size: 11))
-                                .frame(width: 16)
-                            Text(item.name)
-                                .lineLimit(1)
-                        }
-                    }
-                    TableColumn("Tamaño", value: \.totalSize) { item in
-                        Text(item.formattedSize)
-                            .font(.system(.body, design: .monospaced))
-                            .frame(maxWidth: .infinity, alignment: .trailing)
-                    }
-                    .width(90)
-                    TableColumn("Tipo") { item in
-                        let ext = item.url.pathExtension.lowercased()
-                        Text(ext.isEmpty ? "—" : ".\(ext)")
-                            .foregroundStyle(.secondary)
-                            .font(.system(size: 12, design: .monospaced))
-                    }
-                    .width(64)
-                    TableColumn("Ubicación") { item in
-                        Text(item.url.deletingLastPathComponent().path)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                            .truncationMode(.head)
-                    }
-                    TableColumn("Modificado") { item in
-                        Text(item.formattedDate)
-                            .foregroundStyle(.secondary)
-                            .font(.system(size: 12))
-                            .lineLimit(1)
-                    }
-                    .width(150)
-                }
-                .contextMenu(forSelectionType: UUID.self) { ids in
-                    let selected = allFiles.filter { ids.contains($0.id) }
-                    if selected.isEmpty { return }
-
-                    if selected.count == 1, let item = selected.first {
-                        Button("Mostrar en Finder") { scanner.revealInFinder(item) }
-                        Button("Abrir")             { scanner.openFile(item) }
-                        Button("Copiar ruta")        { scanner.copyPath(item) }
-                        Divider()
-                        Button("Mover a la papelera", role: .destructive) {
-                            scanner.confirmAndMoveToTrash(item)
-                            allFiles.removeAll { $0.id == item.id }
-                        }
-                    } else {
-                        // Multi-selección
-                        Button("Copiar rutas (\(selected.count))") {
-                            let paths = selected.map { $0.url.path }.joined(separator: "\n")
-                            NSPasteboard.general.clearContents()
-                            NSPasteboard.general.setString(paths, forType: .string)
-                        }
-                        Divider()
-                        Button("Mover \(selected.count) elementos a la papelera", role: .destructive) {
-                            scanner.confirmAndMoveMultipleToTrash(selected) { moved in
-                                let movedIDs = Set(moved.map { $0.id })
-                                allFiles.removeAll { movedIDs.contains($0.id) }
-                                selectedIDs.subtract(movedIDs)
-                            }
-                        }
-                    }
-                }
-                .onChange(of: selectedIDs) { ids in
-                    if let id = ids.first,
-                       let item = allFiles.first(where: { $0.id == id }) {
-                        scanner.selectedItem = item
-                    }
-                }
-            }
+            if allFiles.isEmpty { emptyState } else { fileTable }
         }
         .onAppear { refreshFiles() }
-        .onChange(of: scanner.isScanning) { scanning in
-            if !scanning { refreshFiles() }
+        .onChange(of: scanner.isScanning) { if !$0 { refreshFiles() } }
+    }
+
+    private var fileTable: some View {
+        Table(displayedFiles, selection: $selectedIDs, sortOrder: $sortOrder) {
+            tableColumns
+        }
+        .contextMenu(forSelectionType: UUID.self) { ids in
+            tableContextMenu(for: ids)
+        }
+        .onChange(of: selectedIDs) { ids in
+            if let id = ids.first, let item = allFiles.first(where: { $0.id == id }) {
+                scanner.selectedItem = item
+            }
+        }
+    }
+
+    @TableColumnBuilder<FileItem, KeyPathComparator<FileItem>>
+    private var tableColumns: some TableColumnContent<FileItem, KeyPathComparator<FileItem>> {
+        TableColumn("Nombre", value: \.name) { item in
+            HStack(spacing: 6) {
+                Image(systemName: item.icon)
+                    .foregroundStyle(item.iconColor)
+                    .font(.system(size: 11))
+                    .frame(width: 16)
+                Text(item.name).lineLimit(1)
+            }
+        }
+        TableColumn("Tamaño", value: \.totalSize) { item in
+            Text(item.formattedSize)
+                .font(.system(.body, design: .monospaced))
+                .frame(maxWidth: .infinity, alignment: .trailing)
+        }
+        .width(90)
+        TableColumn("Tipo") { item in
+            let ext = item.url.pathExtension.lowercased()
+            Text(ext.isEmpty ? "—" : ".\(ext)")
+                .foregroundStyle(.secondary)
+                .font(.system(size: 12, design: .monospaced))
+        }
+        .width(64)
+        TableColumn("Ubicación") { item in
+            Text(item.url.deletingLastPathComponent().path)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .truncationMode(.head)
+        }
+        TableColumn("Modificado") { item in
+            Text(item.formattedDate)
+                .foregroundStyle(.secondary)
+                .font(.system(size: 12))
+                .lineLimit(1)
+        }
+        .width(150)
+    }
+
+    @ViewBuilder
+    private func tableContextMenu(for ids: Set<UUID>) -> some View {
+        let selected = allFiles.filter { ids.contains($0.id) }
+        if selected.count == 1, let item = selected.first {
+            Button("Mostrar en Finder") { scanner.revealInFinder(item) }
+            Button("Abrir")             { scanner.openFile(item) }
+            Button("Copiar ruta")       { scanner.copyPath(item) }
+            Divider()
+            Button("Mover a la papelera", role: .destructive) {
+                scanner.confirmAndMoveToTrash(item)
+                allFiles.removeAll { $0.id == item.id }
+            }
+        } else if selected.count > 1 {
+            Button("Copiar rutas (\(selected.count))") {
+                let paths = selected.map { $0.url.path }.joined(separator: "\n")
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(paths, forType: .string)
+            }
+            Divider()
+            Button("Mover \(selected.count) elementos a la papelera", role: .destructive) {
+                scanner.confirmAndMoveMultipleToTrash(selected) { moved in
+                    let ids = Set(moved.map { $0.id })
+                    allFiles.removeAll { ids.contains($0.id) }
+                    selectedIDs.subtract(ids)
+                }
+            }
         }
     }
 
