@@ -81,18 +81,34 @@ struct TreemapLayout: View {
     let items: [FileItem]
     let frame: CGRect
     @ObservedObject var scanner: DiskScanner
-    
+
+    // ── Caché: evita recalcular si items y tamaño no cambiaron ──────────
+    @State private var cachedRects: [CGRect] = []
+    @State private var cachedKey:   String   = ""
+
+    private var cacheKey: String {
+        let ids = items.prefix(4).map { $0.id.uuidString }.joined()
+        return "\(items.count)_\(ids)_\(Int(frame.width))x\(Int(frame.height))"
+    }
+
     var body: some View {
-        let rects = squarify(items: items, in: frame)
-        
-        return ZStack(alignment: .topLeading) {
+        ZStack(alignment: .topLeading) {
             ForEach(Array(zip(items.indices, items)), id: \.1.id) { index, item in
-                if index < rects.count {
-                    TreemapCell(item: item, rect: rects[index], scanner: scanner)
+                if index < cachedRects.count {
+                    TreemapCell(item: item, rect: cachedRects[index], scanner: scanner)
                 }
             }
         }
         .frame(width: frame.width, height: frame.height)
+        .onAppear       { recomputeIfNeeded() }
+        .onChange(of: cacheKey) { _ in recomputeIfNeeded() }
+    }
+
+    private func recomputeIfNeeded() {
+        let key = cacheKey
+        guard key != cachedKey, frame.width > 0, frame.height > 0 else { return }
+        cachedRects = squarify(items: items, in: frame)
+        cachedKey   = key
     }
     
     // Squarified treemap algorithm
@@ -195,25 +211,30 @@ struct TreemapLayout: View {
         
         let isHorizontal = rect.width >= rect.height
         let side = isHorizontal ? rect.height : rect.width
-        let rowWidth = side > 0 ? rowArea / side : 0
-        
+        let rowWidth = max(0, side > 0 ? rowArea / side : 0)
+
         var rects: [CGRect] = []
         var pos: CGFloat = isHorizontal ? rect.minY : rect.minX
-        
+
         for item in items {
-            let frac = Double(max(item.totalSize, 1)) / Double(rowTotal)
-            let itemLen = frac * side
-            
+            let frac    = Double(max(item.totalSize, 1)) / Double(rowTotal)
+            let itemLen = max(0, frac * side)
+            let minCell: CGFloat = 2
+
             let r: CGRect
             if isHorizontal {
-                r = CGRect(x: rect.minX, y: pos, width: rowWidth, height: itemLen)
+                r = CGRect(x: rect.minX, y: pos,
+                           width:  max(minCell, rowWidth),
+                           height: max(minCell, itemLen))
             } else {
-                r = CGRect(x: pos, y: rect.minY, width: itemLen, height: rowWidth)
+                r = CGRect(x: pos, y: rect.minY,
+                           width:  max(minCell, itemLen),
+                           height: max(minCell, rowWidth))
             }
             rects.append(r)
             pos += itemLen
         }
-        
+
         return rects
     }
 }
