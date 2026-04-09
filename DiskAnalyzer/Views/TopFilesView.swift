@@ -96,15 +96,32 @@ struct TopFilesView: View {
                     .width(150)
                 }
                 .contextMenu(forSelectionType: UUID.self) { ids in
-                    if let id = ids.first,
-                       let item = allFiles.first(where: { $0.id == id }) {
+                    let selected = allFiles.filter { ids.contains($0.id) }
+                    if selected.isEmpty { return }
+
+                    if selected.count == 1, let item = selected.first {
                         Button("Mostrar en Finder") { scanner.revealInFinder(item) }
                         Button("Abrir")             { scanner.openFile(item) }
                         Button("Copiar ruta")        { scanner.copyPath(item) }
                         Divider()
                         Button("Mover a la papelera", role: .destructive) {
-                            scanner.moveToTrash(item)
+                            scanner.confirmAndMoveToTrash(item)
                             allFiles.removeAll { $0.id == item.id }
+                        }
+                    } else {
+                        // Multi-selección
+                        Button("Copiar rutas (\(selected.count))") {
+                            let paths = selected.map { $0.url.path }.joined(separator: "\n")
+                            NSPasteboard.general.clearContents()
+                            NSPasteboard.general.setString(paths, forType: .string)
+                        }
+                        Divider()
+                        Button("Mover \(selected.count) elementos a la papelera", role: .destructive) {
+                            scanner.confirmAndMoveMultipleToTrash(selected) { moved in
+                                let movedIDs = Set(moved.map { $0.id })
+                                allFiles.removeAll { movedIDs.contains($0.id) }
+                                selectedIDs.subtract(movedIDs)
+                            }
                         }
                     }
                 }
