@@ -179,44 +179,58 @@ class DiskScanner: ObservableObject {
             return
         }
 
-        var fileItems: [FileItem] = []
-        var dirItems:  [FileItem] = []
-        var fileTotal: Int64      = 0
+        // ── Recopilar datos en background (sin tocar FileItem) ──────────
+        struct ChildData {
+            let url: URL
+            let isDir: Bool
+            let size: Int64
+            let modDate: Date?
+            let creDate: Date?
+        }
+        var childDataList: [ChildData] = []
+        var fileTotal: Int64 = 0
 
         for childURL in contents {
             guard !Task.isCancelled else { return }
-
             let rv        = try? childURL.resourceValues(forKeys: allKeys)
             let isSymLink = rv?.isSymbolicLink ?? false
             let isDir     = (rv?.isDirectory ?? false) && !isSymLink
-
-            let child = FileItem(url: childURL, isDirectory: isDir)
-            child.modificationDate = rv?.contentModificationDate
-            child.creationDate     = rv?.creationDate
-
-            if isDir {
-                dirItems.append(child)
-            } else {
-                let sz      = Int64(rv?.fileSize ?? 0)
-                child.size      = sz
-                child.totalSize = sz
-                fileTotal      += sz
-                fileItems.append(child)
-            }
+            let sz        = isDir ? Int64(0) : Int64(rv?.fileSize ?? 0)
+            if !isDir { fileTotal += sz }
+            childDataList.append(ChildData(
+                url:     childURL,
+                isDir:   isDir,
+                size:    sz,
+                modDate: rv?.contentModificationDate,
+                creDate: rv?.creationDate
+            ))
         }
 
-        let allChildren = dirItems + fileItems
+        // ── Crear y configurar FileItems en MainActor (hilo principal) ───
         let scanner = self
-        await MainActor.run {
-            for child in allChildren { child.parent = item }
-            item.children  = allChildren
+        let dirChildren: [FileItem] = await MainActor.run {
+            var dirs: [FileItem] = []
+            var all:  [FileItem] = []
+            for d in childDataList {
+                let child          = FileItem(url: d.url, isDirectory: d.isDir)
+                child.size         = d.size
+                child.totalSize    = d.size
+                child.modificationDate = d.modDate
+                child.creationDate     = d.creDate
+                child.parent       = item
+                all.append(child)
+                if d.isDir { dirs.append(child) }
+            }
+            // dirs primero para que el árbol muestre directorios arriba
+            item.children   = dirs + all.filter { !$0.isDirectory }
             item.totalSize += fileTotal
-            item.itemCount += allChildren.count
-            scanner.totalScanned += allChildren.count
+            item.itemCount += all.count
+            scanner.totalScanned += all.count
+            return dirs
         }
 
         await withTaskGroup(of: Void.self) { group in
-            for dirChild in dirItems {
+            for dirChild in dirChildren {
                 guard !Task.isCancelled else { break }
                 group.addTask {
                     await self.scanDir(item: dirChild, showHidden: showHidden)
