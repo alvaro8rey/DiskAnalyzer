@@ -125,7 +125,7 @@ class DiskScanner: ObservableObject {
         }
 
         scanTask = Task {
-            await scanDir(item: root, showHidden: hidden)
+            await scanDir(item: root, showHidden: hidden, isRoot: true)
             timeoutTask?.cancel()
             timeoutTask = nil
             rateTimer?.invalidate()
@@ -161,7 +161,7 @@ class DiskScanner: ObservableObject {
 
     // MARK: - Scanning (nonisolated → cooperative thread pool)
 
-    nonisolated private func scanDir(item: FileItem, showHidden: Bool) async {
+    nonisolated private func scanDir(item: FileItem, showHidden: Bool, isRoot: Bool = false) async {
         guard !Task.isCancelled else { return }
 
         let url = item.url
@@ -192,7 +192,7 @@ class DiskScanner: ObservableObject {
                 options: options
             )
         } catch {
-            if item.parent == nil {
+            if isRoot {
                 let scanner = self
                 await MainActor.run {
                     scanner.isScanning = false
@@ -366,7 +366,7 @@ class DiskScanner: ObservableObject {
                     errorMessage = "No se pudo mover «\(item.name)»: \(error.localizedDescription)"
                 }
             }
-            if selectedItem.map({ moved.contains(where: { $0.id == $0.id }) }) == true {
+            if let sel = selectedItem, moved.contains(where: { $0.id == sel.id }) {
                 selectedItem = rootItem
             }
             completion(moved)
