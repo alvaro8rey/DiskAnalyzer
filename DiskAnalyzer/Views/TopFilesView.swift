@@ -197,11 +197,14 @@ struct TopFilesView: View {
         df.dateFormat = "yyyy-MM-dd_HH-mm-ss"
         let fileName = "DiskAnalyzer_\(df.string(from: Date())).csv"
 
-        let dirs = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask)
-        guard let dir = dirs.first else { return }
-        let fileURL = dir.appendingPathComponent(fileName)
+        // Application Support es siempre accesible sin permisos TCC adicionales
+        let base = FileManager.default
+            .urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("DiskAnalyzer/Exports", isDirectory: true)
 
         do {
+            try FileManager.default.createDirectory(at: base, withIntermediateDirectories: true)
+            let fileURL = base.appendingPathComponent(fileName)
             try csv.write(to: fileURL, atomically: true, encoding: .utf8)
             NSWorkspace.shared.activateFileViewerSelecting([fileURL])
         } catch {
