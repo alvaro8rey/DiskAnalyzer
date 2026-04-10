@@ -1,5 +1,4 @@
 import SwiftUI
-import UniformTypeIdentifiers
 
 struct TopFilesView: View {
     @ObservedObject var scanner: DiskScanner
@@ -193,17 +192,24 @@ struct TopFilesView: View {
     // ── Helpers ─────────────────────────────────────────────────────────
 
     private func exportToCSV() {
-        guard let window = NSApp.keyWindow else { return }
-        let panel = NSSavePanel()
-        panel.allowedContentTypes = [.commaSeparatedText]
+        let csv = scanner.exportTopFilesToCSV()
         let df = DateFormatter()
-        df.dateFormat = "yyyy-MM-dd"
-        panel.nameFieldStringValue = "DiskAnalyzer_\(df.string(from: Date())).csv"
-        panel.title = "Exportar resultados"
-        panel.beginSheetModal(for: window) { [scanner] response in
-            guard response == .OK, let url = panel.url else { return }
-            let csv = scanner.exportTopFilesToCSV()
-            try? csv.write(to: url, atomically: true, encoding: .utf8)
+        df.dateFormat = "yyyy-MM-dd_HH-mm-ss"
+        let fileName = "DiskAnalyzer_\(df.string(from: Date())).csv"
+
+        let dirs = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask)
+        guard let dir = dirs.first else { return }
+        let fileURL = dir.appendingPathComponent(fileName)
+
+        do {
+            try csv.write(to: fileURL, atomically: true, encoding: .utf8)
+            NSWorkspace.shared.activateFileViewerSelecting([fileURL])
+        } catch {
+            let alert = NSAlert()
+            alert.messageText = "Error al exportar"
+            alert.informativeText = error.localizedDescription
+            alert.alertStyle = .warning
+            alert.runModal()
         }
     }
 
