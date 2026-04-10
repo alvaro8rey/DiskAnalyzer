@@ -193,18 +193,17 @@ struct TopFilesView: View {
     // ── Helpers ─────────────────────────────────────────────────────────
 
     private func exportToCSV() {
-        let csv = scanner.exportTopFilesToCSV()
-        DispatchQueue.main.async {
-            let panel = NSSavePanel()
-            panel.allowedContentTypes = [.commaSeparatedText]
-            let df = DateFormatter()
-            df.dateFormat = "yyyy-MM-dd"
-            panel.nameFieldStringValue = "DiskAnalyzer_\(df.string(from: Date())).csv"
-            panel.title = "Exportar resultados"
-            panel.makeKeyAndOrderFront(nil)
-            if panel.runModal() == .OK, let url = panel.url {
-                try? csv.write(to: url, atomically: true, encoding: .utf8)
-            }
+        guard let window = NSApp.keyWindow else { return }
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.commaSeparatedText]
+        let df = DateFormatter()
+        df.dateFormat = "yyyy-MM-dd"
+        panel.nameFieldStringValue = "DiskAnalyzer_\(df.string(from: Date())).csv"
+        panel.title = "Exportar resultados"
+        panel.beginSheetModal(for: window) { [scanner] response in
+            guard response == .OK, let url = panel.url else { return }
+            let csv = scanner.exportTopFilesToCSV()
+            try? csv.write(to: url, atomically: true, encoding: .utf8)
         }
     }
 
