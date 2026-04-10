@@ -25,6 +25,14 @@ struct TopFilesView: View {
     }
 
     var body: some View {
+        mainContent
+            .onAppear { refreshFiles() }
+            .onChange(of: scanner.isScanning) { _, scanning in
+                if !scanning { refreshFiles() }
+            }
+    }
+
+    private var mainContent: some View {
         VStack(spacing: 0) {
             GeometryReader { geo in
                 toolbarContent(width: geo.size.width)
@@ -37,8 +45,6 @@ struct TopFilesView: View {
 
             if allFiles.isEmpty { emptyState } else { fileTable }
         }
-        .onAppear { refreshFiles() }
-        .onChange(of: scanner.isScanning) { if !$0 { refreshFiles() } }
     }
 
     private var fileTable: some View {
@@ -48,7 +54,7 @@ struct TopFilesView: View {
         .contextMenu(forSelectionType: UUID.self) { ids in
             tableContextMenu(for: ids)
         }
-        .onChange(of: selectedIDs) { ids in
+        .onChange(of: selectedIDs) { _, ids in
             if let id = ids.first, let item = allFiles.first(where: { $0.id == id }) {
                 scanner.selectedItem = item
             }
@@ -188,14 +194,17 @@ struct TopFilesView: View {
 
     private func exportToCSV() {
         let csv = scanner.exportTopFilesToCSV()
-        let panel = NSSavePanel()
-        panel.allowedContentTypes = [.commaSeparatedText]
-        let df = DateFormatter()
-        df.dateFormat = "yyyy-MM-dd"
-        panel.nameFieldStringValue = "DiskAnalyzer_\(df.string(from: Date())).csv"
-        panel.title = "Exportar resultados"
-        if panel.runModal() == .OK, let url = panel.url {
-            try? csv.write(to: url, atomically: true, encoding: .utf8)
+        DispatchQueue.main.async {
+            let panel = NSSavePanel()
+            panel.allowedContentTypes = [.commaSeparatedText]
+            let df = DateFormatter()
+            df.dateFormat = "yyyy-MM-dd"
+            panel.nameFieldStringValue = "DiskAnalyzer_\(df.string(from: Date())).csv"
+            panel.title = "Exportar resultados"
+            panel.makeKeyAndOrderFront(nil)
+            if panel.runModal() == .OK, let url = panel.url {
+                try? csv.write(to: url, atomically: true, encoding: .utf8)
+            }
         }
     }
 

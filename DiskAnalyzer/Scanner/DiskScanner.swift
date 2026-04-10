@@ -278,7 +278,7 @@ class DiskScanner: ObservableObject {
             item.children?.forEach { collect($0) }
         }
         collect(root)
-        return result.sorted { $0.totalSize > $1.totalSize }
+        return Array(result.sorted { $0.totalSize > $1.totalSize }.prefix(5_000))
     }
 
     /// Desglose de espacio por categoría de archivo.
