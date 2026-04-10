@@ -32,7 +32,11 @@
     <!-- Permitir AppleScript para "Obtener información" en Finder -->
     <key>com.apple.security.automation.apple-events</key>
     <true/>
-    
+
+    <!-- Acceso lectura/escritura a archivos seleccionados por el usuario (necesario para NSSavePanel) -->
+    <key>com.apple.security.files.user-selected.read-write</key>
+    <true/>
+
     <!-- Heredability de privilegios para herramientas auxiliares -->
     <key>com.apple.security.inherit</key>
     <false/>
