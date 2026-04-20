@@ -1,41 +1,47 @@
 import Foundation
 import SwiftUI
+import Combine
 
 // MARK: - FileItem Model
 
+/// Todos los var son @MainActor-isolated. Los let inmutables son nonisolated
+/// para poder leerlos desde tareas en background sin await.
+@MainActor
 class FileItem: Identifiable, ObservableObject {
-    let id = UUID()
-    let url: URL
-    let name: String
-    let isDirectory: Bool
-    var size: Int64 = 0         // Tamaño real del archivo/directorio
-    var totalSize: Int64 = 0    // Tamaño total incluyendo subdirectorios
-    var itemCount: Int = 0      // Número de ítems hijos
+    nonisolated let id          = UUID()
+    nonisolated let url:         URL
+    nonisolated let name:        String
+    nonisolated let isDirectory: Bool
+
+    var size:             Int64  = 0
+    var totalSize:        Int64  = 0
+    var itemCount:        Int    = 0
     var modificationDate: Date?
-    var creationDate: Date?
-    
+    var creationDate:     Date?
+
     @Published var children: [FileItem]? = nil
     @Published var isLoading: Bool = false
-    
+
     weak var parent: FileItem?
-    
-    init(url: URL, isDirectory: Bool) {
-        self.url = url
-        self.name = url.lastPathComponent
+
+    /// Init nonisolated: solo asigna propiedades `let` inmutables.
+    nonisolated init(url: URL, isDirectory: Bool) {
+        self.url         = url
+        self.name        = url.lastPathComponent
         self.isDirectory = isDirectory
     }
-    
+
     var formattedSize: String {
         ByteCountFormatter.string(fromByteCount: totalSize, countStyle: .file)
     }
-    
+
     var formattedItemCount: String {
         if isDirectory {
             return "\(itemCount) \(itemCount == 1 ? "elemento" : "elementos")"
         }
         return ""
     }
-    
+
     var formattedDate: String {
         guard let date = modificationDate else { return "—" }
         let formatter = DateFormatter()
@@ -43,11 +49,9 @@ class FileItem: Identifiable, ObservableObject {
         formatter.timeStyle = .short
         return formatter.string(from: date)
     }
-    
+
     var icon: String {
-        if isDirectory {
-            return "folder.fill"
-        }
+        if isDirectory { return "folder.fill" }
         let ext = url.pathExtension.lowercased()
         switch ext {
         case "swift", "py", "js", "ts", "kt", "java", "c", "cpp", "h", "rs", "go":
@@ -70,11 +74,9 @@ class FileItem: Identifiable, ObservableObject {
             return "doc.fill"
         }
     }
-    
+
     var iconColor: Color {
-        if isDirectory {
-            return .accentColor
-        }
+        if isDirectory { return .accentColor }
         let ext = url.pathExtension.lowercased()
         switch ext {
         case "swift", "py", "js", "ts", "kt", "java", "c", "cpp", "h", "rs", "go":
@@ -95,8 +97,7 @@ class FileItem: Identifiable, ObservableObject {
             return .secondary
         }
     }
-    
-    // Porcentaje respecto al padre
+
     func percentage(of parent: FileItem) -> Double {
         guard parent.totalSize > 0 else { return 0 }
         return Double(totalSize) / Double(parent.totalSize)
@@ -107,11 +108,11 @@ class FileItem: Identifiable, ObservableObject {
 
 enum SortOption: String, CaseIterable, Identifiable {
     case sizeDesc = "Tamaño ↓"
-    case sizeAsc = "Tamaño ↑"
-    case nameAsc = "Nombre A→Z"
+    case sizeAsc  = "Tamaño ↑"
+    case nameAsc  = "Nombre A→Z"
     case nameDesc = "Nombre Z→A"
     case dateDesc = "Fecha ↓"
-    case dateAsc = "Fecha ↑"
-    
+    case dateAsc  = "Fecha ↑"
+
     var id: String { rawValue }
 }

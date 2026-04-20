@@ -3,7 +3,8 @@ import SwiftUI
 struct SidebarView: View {
     @ObservedObject var scanner: DiskScanner
     @State private var expandedItems: Set<UUID> = []
-    
+    @FocusState private var treeIsFocused: Bool
+
     var body: some View {
         VStack(spacing: 0) {
             // Search bar
@@ -26,10 +27,10 @@ struct SidebarView: View {
                 .padding(.horizontal, 8)
                 .padding(.vertical, 6)
                 .background(.regularMaterial)
-                
+
                 Divider()
             }
-            
+
             // Tree list
             if let root = scanner.rootItem {
                 ScrollView {
@@ -43,14 +44,70 @@ struct SidebarView: View {
                         )
                     }
                 }
+                .focused($treeIsFocused)
+                .onTapGesture { treeIsFocused = true }
+                .onKeyPress(.upArrow)    { keyboardNavigate(-1); return .handled }
+                .onKeyPress(.downArrow)  { keyboardNavigate(+1); return .handled }
+                .onKeyPress(.rightArrow) { keyboardExpand();     return .handled }
+                .onKeyPress(.leftArrow)  { keyboardCollapse();   return .handled }
             } else {
                 WelcomeView(scanner: scanner)
             }
-            
+
             Divider()
-            
+
             // Status bar
             StatusBarView(scanner: scanner)
+        }
+    }
+
+    // MARK: - Keyboard navigation helpers
+
+    /// Construye una lista plana de items visibles (respeta expandedItems)
+    private func visibleItems() -> [FileItem] {
+        guard let root = scanner.rootItem else { return [] }
+        var result: [FileItem] = []
+        func traverse(_ item: FileItem) {
+            result.append(item)
+            if expandedItems.contains(item.id), let children = item.children {
+                children.forEach { traverse($0) }
+            }
+        }
+        traverse(root)
+        return result
+    }
+
+    private func keyboardNavigate(_ delta: Int) {
+        let flat = visibleItems()
+        guard !flat.isEmpty else { return }
+        let currentID = scanner.selectedItem?.id
+        if let idx = flat.firstIndex(where: { $0.id == currentID }) {
+            let next = max(0, min(flat.count - 1, idx + delta))
+            scanner.selectedItem = flat[next]
+        } else {
+            scanner.selectedItem = flat[delta > 0 ? 0 : flat.count - 1]
+        }
+    }
+
+    private func keyboardExpand() {
+        guard let item = scanner.selectedItem, item.isDirectory else { return }
+        if expandedItems.contains(item.id) {
+            // Ya expandido: bajar al primer hijo
+            if let first = item.children?.first {
+                scanner.selectedItem = first
+            }
+        } else {
+            expandedItems.insert(item.id)
+        }
+    }
+
+    private func keyboardCollapse() {
+        guard let item = scanner.selectedItem else { return }
+        if item.isDirectory && expandedItems.contains(item.id) {
+            expandedItems.remove(item.id)
+        } else if let parent = item.parent {
+            scanner.selectedItem = parent
+            expandedItems.remove(parent.id)
         }
     }
 }
@@ -110,30 +167,16 @@ struct FileRowView: View {
                     .font(.system(size: 13))
                     .frame(width: 20, height: 20)
                 
-                // Name
-                Text(item.name.isEmpty ? "/" : item.name)
+                // Name (con highlight de búsqueda si aplica)
+                highlightedName(item.name.isEmpty ? "/" : item.name,
+                                search: scanner.searchText)
                     .font(.system(size: 13))
                     .lineLimit(1)
                     .truncationMode(.middle)
                     .padding(.leading, 4)
-                
+
                 Spacer(minLength: 8)
-                
-                // Size bar
-                if let parent = item.parent, parent.totalSize > 0 {
-                    let pct = item.percentage(of: parent)
-                    GeometryReader { geo in
-                        ZStack(alignment: .leading) {
-                            RoundedRectangle(cornerRadius: 2)
-                                .fill(Color.secondary.opacity(0.15))
-                            RoundedRectangle(cornerRadius: 2)
-                                .fill(sizeBarColor(pct: pct))
-                                .frame(width: geo.size.width * pct)
-                        }
-                    }
-                    .frame(width: 60, height: 6)
-                }
-                
+
                 // Size
                 Text(item.formattedSize)
                     .font(.system(size: 12, design: .monospaced))
@@ -143,24 +186,40 @@ struct FileRowView: View {
             }
             .frame(height: 28)
             .background(
-                RoundedRectangle(cornerRadius: 5)
-                    .fill(
-                        isSelected ? Color.accentColor.opacity(0.2) :
-                        isHovered ? Color.secondary.opacity(0.08) : .clear
-                    )
-                    .padding(.horizontal, 4)
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        // ── Fondo proporcional al porcentaje ──────────────
+                        if let parent = item.parent, parent.totalSize > 0 {
+                            let pct = CGFloat(item.percentage(of: parent))
+                            sizeBarColor(pct: Double(pct))
+                                .opacity(0.22)
+                                .frame(width: geo.size.width * pct)
+                                .animation(.easeOut(duration: 0.25), value: pct)
+                        }
+                        // ── Overlay selección / hover ─────────────────────
+                        RoundedRectangle(cornerRadius: 5)
+                            .fill(
+                                isSelected ? Color.accentColor.opacity(0.25) :
+                                isHovered  ? Color.secondary.opacity(0.08)   : Color.clear
+                            )
+                            .padding(.horizontal, 4)
+                    }
+                }
             )
             .contentShape(Rectangle())
-            .onTapGesture { selectItem() }
-            .onTapGesture(count: 2) {
+            .onTapGesture {
+                selectItem()
                 if item.isDirectory { toggleExpand() }
             }
             .onHover { isHovered = $0 }
             .contextMenu {
                 Button("Mostrar en Finder") { scanner.revealInFinder(item) }
-                Button("Abrir") { scanner.openFile(item) }
+                Button("Abrir")             { scanner.openFile(item) }
+                Button("Copiar ruta")        { scanner.copyPath(item) }
                 Divider()
                 Button("Obtener información") { scanner.getInfo(item) }
+                Divider()
+                Button("Mover a la papelera", role: .destructive) { scanner.confirmAndMoveToTrash(item) }
             }
             
             // Children (when expanded)
@@ -180,6 +239,21 @@ struct FileRowView: View {
         }
     }
     
+    /// Renderiza `text` con la parte que coincide con `search` en negrita y
+    /// color de acento. Devuelve un Text compuesto para poder aplicar modificadores.
+    private func highlightedName(_ text: String, search: String) -> Text {
+        guard !search.isEmpty,
+              let range = text.range(of: search, options: .caseInsensitive) else {
+            return Text(text)
+        }
+        let before = String(text[text.startIndex..<range.lowerBound])
+        let match  = String(text[range])
+        let after  = String(text[range.upperBound...])
+        return Text(before)
+             + Text(match).bold().foregroundColor(.accentColor)
+             + Text(after)
+    }
+
     private func selectItem() {
         scanner.selectedItem = item
     }
@@ -195,8 +269,8 @@ struct FileRowView: View {
     private func sizeBarColor(pct: Double) -> Color {
         switch pct {
         case 0.5...:  return .red.opacity(0.75)
-        case 0.2..:   return .orange.opacity(0.75)
-        case 0.05..:  return .yellow.opacity(0.75)
+        case 0.2...:  return .orange.opacity(0.75)
+        case 0.05...: return .yellow.opacity(0.75)
         default:      return .green.opacity(0.6)
         }
     }
@@ -206,29 +280,55 @@ struct FileRowView: View {
 
 struct StatusBarView: View {
     @ObservedObject var scanner: DiskScanner
-    
+
     var body: some View {
-        HStack(spacing: 8) {
+        VStack(spacing: 0) {
+            // Barra de progreso animada durante el escaneo
             if scanner.isScanning {
                 ProgressView()
-                    .scaleEffect(0.6)
-                    .frame(width: 16, height: 16)
-            } else {
-                Image(systemName: scanner.rootItem == nil ? "externaldrive" : "checkmark.circle.fill")
-                    .foregroundStyle(scanner.rootItem == nil ? .secondary : .green)
-                    .font(.system(size: 11))
+                    .progressViewStyle(.linear)
+                    .padding(.horizontal, 10)
+                    .padding(.top, 5)
+                    .padding(.bottom, 1)
             }
-            
-            Text(scanner.statusMessage)
-                .font(.system(size: 11))
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-            
-            Spacer()
+
+            HStack(spacing: 6) {
+                if scanner.isScanning {
+                    // Contador en vivo + velocidad
+                    Text("\(scanner.totalScanned.formatted()) elementos")
+                        .font(.system(size: 11, weight: .medium))
+                        .monospacedDigit()
+
+                    if scanner.scanRate > 0 {
+                        Text("·")
+                            .foregroundStyle(.secondary)
+                        Text("\(formatRate(scanner.scanRate))/s")
+                            .font(.system(size: 11, design: .monospaced))
+                            .foregroundStyle(.secondary)
+                    }
+                } else {
+                    Image(systemName: scanner.rootItem == nil ? "externaldrive" : "checkmark.circle.fill")
+                        .foregroundStyle(scanner.rootItem == nil ? AnyShapeStyle(.secondary) : AnyShapeStyle(Color.green))
+                        .font(.system(size: 11))
+
+                    Text(scanner.statusMessage)
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+
+                Spacer()
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
         .background(.regularMaterial)
+    }
+
+    private func formatRate(_ n: Int) -> String {
+        if n >= 1_000_000 { return String(format: "%.1fM", Double(n) / 1_000_000) }
+        if n >= 1_000     { return String(format: "%.1fK", Double(n) / 1_000) }
+        return "\(n)"
     }
 }
 
@@ -236,36 +336,88 @@ struct StatusBarView: View {
 
 struct WelcomeView: View {
     @ObservedObject var scanner: DiskScanner
-    
+
     var body: some View {
-        VStack(spacing: 24) {
-            Spacer()
-            
-            Image(systemName: "externaldrive.badge.magnifyingglass")
-                .font(.system(size: 56))
-                .foregroundStyle(.secondary)
-            
-            VStack(spacing: 8) {
-                Text("Disk Analyzer")
-                    .font(.system(size: 20, weight: .semibold))
-                Text("Analiza el uso del espacio en disco\ncomo WinDirStat / TreeSize")
-                    .font(.system(size: 13))
+        ScrollView {
+            VStack(spacing: 24) {
+                Spacer().frame(height: 16)
+
+                Image(systemName: "externaldrive.badge.magnifyingglass")
+                    .font(.system(size: 52))
                     .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
+
+                VStack(spacing: 6) {
+                    Text("Disk Analyzer")
+                        .font(.system(size: 20, weight: .semibold))
+                    Text("Analiza el uso del espacio en disco")
+                        .font(.system(size: 13))
+                        .foregroundStyle(.secondary)
+                }
+
+                Button(action: { scanner.selectDirectory() }) {
+                    Label("Seleccionar directorio...", systemImage: "folder.badge.plus")
+                        .font(.system(size: 13, weight: .medium))
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                }
+                .buttonStyle(.borderedProminent)
+                .keyboardShortcut("o", modifiers: .command)
+
+                // ── Recientes ────────────────────────────────────────────
+                if !scanner.recentDirectories.isEmpty {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("RECIENTES")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                            .padding(.leading, 4)
+
+                        VStack(spacing: 0) {
+                            ForEach(scanner.recentDirectories, id: \.path) { url in
+                                Button(action: { scanner.selectDirectory(initialURL: url) }) {
+                                    HStack(spacing: 10) {
+                                        Image(systemName: url.pathComponents.count <= 2
+                                              ? "externaldrive.fill" : "folder.fill")
+                                            .foregroundStyle(Color.accentColor)
+                                            .frame(width: 20)
+                                        VStack(alignment: .leading, spacing: 1) {
+                                            Text(url.lastPathComponent.isEmpty ? "/" : url.lastPathComponent)
+                                                .font(.system(size: 12, weight: .medium))
+                                                .lineLimit(1)
+                                            Text(url.path)
+                                                .font(.system(size: 10))
+                                                .foregroundStyle(.secondary)
+                                                .lineLimit(1)
+                                                .truncationMode(.head)
+                                        }
+                                        Spacer()
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: 10))
+                                            .foregroundStyle(.tertiary)
+                                    }
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 8)
+                                }
+                                .buttonStyle(.plain)
+
+                                if url != scanner.recentDirectories.last {
+                                    Divider().padding(.leading, 38)
+                                }
+                            }
+                        }
+                        .background(Color(NSColor.controlBackgroundColor))
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .strokeBorder(Color.secondary.opacity(0.2), lineWidth: 0.5)
+                        )
+                    }
+                    .frame(maxWidth: 340)
+                }
+
+                Spacer().frame(height: 16)
             }
-            
-            Button(action: { scanner.selectDirectory() }) {
-                Label("Seleccionar directorio...", systemImage: "folder.badge.plus")
-                    .font(.system(size: 13, weight: .medium))
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-            }
-            .buttonStyle(.borderedProminent)
-            .keyboardShortcut("o", modifiers: .command)
-            
-            Spacer()
+            .frame(maxWidth: .infinity)
+            .padding()
         }
-        .frame(maxWidth: .infinity)
-        .padding()
     }
 }
